@@ -1,0 +1,39 @@
+[
+{
+  "window": {
+    "title": "BlueFox Engine",
+    "width": 1280,
+    "height": 720,
+    "fullscreen": false,
+    "vsync": true
+  },
+
+  "renderer": {
+    "targetFps": 60,
+    "pixelPerfect": false,
+    "msaa": true
+  },
+
+  "audio": {
+    "masterVolume": 1.0,
+    "musicVolume": 1.0,
+    "sfxVolume": 1.0
+  },
+
+  "logging": {
+    "console": true,
+    "file": true,
+    "level": "Debug"
+  },
+
+  "assets": {
+    "directory": "Assets",
+    "autoImport": true
+  },
+    "ui": {
+    "defaultTheme": "BlueFoxDark",
+    "defaultFont": "Assets/Fonts/Main.ttf",
+    "enableAnimations": true
+  }
+}
+]

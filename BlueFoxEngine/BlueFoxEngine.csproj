@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GenerateEngineBuildDate>true</GenerateEngineBuildDate>
+        <EngineBuildDate>$([System.DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))</EngineBuildDate>
+    </PropertyGroup>
+
+
+    <UsingTask TaskName="WriteTextFile" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+        <FilePath ParameterType="System.String" Required="true" />
+        <Content ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+        <Code Type="Fragment" Language="cs">
+        System.IO.File.WriteAllText(FilePath, Content);
+        </Code>
+    </Task>
+    </UsingTask>
+
+    <Target Name="WriteEngineBuildDate" BeforeTargets="BeforeCompile" Condition="'$(GenerateEngineBuildDate)'=='true'">
+    <WriteTextFile
+        FilePath="$(IntermediateOutputPath)EngineBuildDate.g.cs"
+        Content="namespace BuildInfo { public static class BuildInfo { public const string EngineBuildDate = &quot;$(EngineBuildDate)&quot;; } }" />
+    </Target>
+    <ItemGroup>
+        <Compile Include="$(IntermediateOutputPath)EngineBuildDate.g.cs" />
+        <None Update="Configuration\EngineConfig.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>Configuration\EngineConfig.json</Link>
+        </None>
+    </ItemGroup>
+</Project>
