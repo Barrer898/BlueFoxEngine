@@ -24,9 +24,7 @@
     </UsingTask>
 
     <Target Name="WriteEngineBuildDate" BeforeTargets="BeforeCompile" Condition="'$(GenerateEngineBuildDate)'=='true'">
-    <WriteTextFile
-        FilePath="$(IntermediateOutputPath)EngineBuildDate.g.cs"
-        Content="namespace BuildInfo { public static class BuildInfo { public const string EngineBuildDate = &quot;$(EngineBuildDate)&quot;; } }" />
+    <WriteTextFile FilePath="$(IntermediateOutputPath)EngineBuildDate.g.cs" Content="namespace BuildInfo { public static class BuildInfo { public const string EngineBuildDate = &quot;$(EngineBuildDate)&quot;; } }" />
     </Target>
     <ItemGroup>
         <Compile Include="$(IntermediateOutputPath)EngineBuildDate.g.cs" />
@@ -34,5 +32,8 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Link>Configuration\EngineConfig.json</Link>
         </None>
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Raylib-cs" Version="8.0.0" />
     </ItemGroup>
 </Project>

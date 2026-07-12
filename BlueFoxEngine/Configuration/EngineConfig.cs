@@ -11,31 +11,31 @@ public class WindowConfig
 {
     [JsonPropertyName("title")] public string Title { get; set; } = string.Empty;
 
-    [JsonPropertyName("width")] public int Width { get; set; }
+    [JsonPropertyName("width")] public int Width { get; set; } = 1280;
 
-    [JsonPropertyName("height")] public int Height { get; set; }
+    [JsonPropertyName("height")] public int Height { get; set; } = 720;
 
-    [JsonPropertyName("fullscreen")] public bool Fullscreen { get; set; }
+    [JsonPropertyName("fullscreen")] public bool Fullscreen { get; set; } = false;
 
-    [JsonPropertyName("vsync")] public bool VSync { get; set; }
+    [JsonPropertyName("vsync")] public bool VSync { get; set; } = true;
 }
 
 public class RendererConfig
 {
-    [JsonPropertyName("targetFps")] public int TargetFps { get; set; }
+    [JsonPropertyName("targetFps")] public int TargetFps { get; set; } = 60;
 
-    [JsonPropertyName("pixelPerfect")] public bool PixelPerfect { get; set; }
+    [JsonPropertyName("pixelPerfect")] public bool PixelPerfect { get; set; } = false;
 
-    [JsonPropertyName("msaa")] public bool Msaa { get; set; }
+    [JsonPropertyName("msaa")] public bool Msaa { get; set; } = true;
 }
 
 public class AudioConfig
 {
-    [JsonPropertyName("masterVolume")] public float MasterVolume { get; set; }
+    [JsonPropertyName("masterVolume")] public float MasterVolume { get; set; } = 100f;
 
-    [JsonPropertyName("musicVolume")] public float MusicVolume { get; set; }
+    [JsonPropertyName("musicVolume")] public float MusicVolume { get; set; } = 100f;
 
-    [JsonPropertyName("sfxVolume")] public float SfxVolume { get; set; }
+    [JsonPropertyName("sfxVolume")] public float SfxVolume { get; set; } = 100f;
 }
 
 public class LoggingConfig

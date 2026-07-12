@@ -1,5 +1,7 @@
 ﻿using BlueFoxEngine.Logging;
 using BlueFoxEngine.Configuration;
+using BlueFoxEngine.Helper;
+using BlueFoxEngine.Scenes;
 
 namespace BlueFoxEngine;
 
@@ -12,10 +14,20 @@ static class Init
                                                  $"BlueFoxEngine {EngineInfo.EngineVersionString}\n" +
                                                  $"Built: {EngineInfo.EngineBuildDate}\n" +
                                                  $"=====================", Logger.OutputLevel.Info);
+        _logger.Output(Logger.OutputType.Info, "Reading arguments", Logger.OutputLevel.Trace);
+        Args.PhraseArgumentsAndInitialize(args);
         _logger.Output(Logger.OutputType.Info, "Reading EngineConfig...", Logger.OutputLevel.Debug);
         try
         {
-            string engineConfigPath = Path.Combine(AppContext.BaseDirectory, "Configuration", "EngineConfig.json");
+            string engineConfigPath;
+            if (!Args._arguments.Has("EngineConfigPath"))
+            {
+                engineConfigPath = Path.Combine(AppContext.BaseDirectory, "Configuration", "EngineConfig.json");
+            }
+            else
+            {
+                engineConfigPath = Args._arguments.Get("EngineConfigPath");
+            }
             CurrentEngineConfig._EngineConfig = ConfigReader.LoadFirst(engineConfigPath);
         }
         catch (Exception e)
@@ -26,6 +38,18 @@ static class Init
         _logger.Output(Logger.OutputType.Info, "Loaded EngineConfig, Updating Logger...", Logger.OutputLevel.Debug);
         _logger.UpdateOutputLevel();
         _logger.Output(Logger.OutputType.Info, "Done.", Logger.OutputLevel.Debug);
-        _logger.Output(Logger.OutputType.Info, "Loading Raylib...", Logger.OutputLevel.Info);
+        SceneManager.SetCurrentScene(new BlueFoxEngine.Scenes.BuiltIn.LoadingScene());
+        SceneManager.Run();
     }
+}
+
+public class Args
+{
+    public static Arguments _arguments;
+
+    public static void PhraseArgumentsAndInitialize(string[] args)
+    {
+        _arguments = new Arguments(args);
+    }
+
 }
