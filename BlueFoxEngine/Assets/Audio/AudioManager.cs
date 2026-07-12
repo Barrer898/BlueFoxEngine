@@ -1,4 +1,4 @@
-using BlueFoxEngine.Resources;
+using BlueFoxEngine.Assets;
 using BlueFoxEngine.Logging;
 using Raylib_cs;
 
@@ -24,7 +24,7 @@ namespace BlueFoxEngine.Assets.Audio
         }
         public static void PlaySound(string audioRelativePath, float volume)
         {
-            Sound sound = ResourceLoader.LoadSoundResource(audioRelativePath); // volume gets clamped in the function no need to pre-clamp
+            Sound sound = AssetLoader.LoadSoundResource(audioRelativePath); // volume gets clamped in the function no need to pre-clamp
             if(Raylib.IsSoundValid(sound))
             {
                 volume = Math.Clamp(volume, 0.0f, 1.0f);

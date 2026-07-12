@@ -3,10 +3,10 @@ using BlueFoxEngine.Configuration;
 using Raylib_cs;
 using System.IO;
 
-namespace BlueFoxEngine.Resources;
+namespace BlueFoxEngine.Assets;
 
 
-public static class ResourceLoader
+public static class AssetLoader
 {
     private static readonly string BaseDirectory = AppContext.BaseDirectory;
 
@@ -96,28 +96,21 @@ public static class ResourceLoader
             
     }
 
-    internal static Sound FindSoundInCache(string AudioRelativePath)
+    internal static Sound FindSoundInCache(string audioRelativePath)
     {
-        Sound RequestedSound;
-        if (SoundCache.TryGetValue(AudioRelativePath, out RequestedSound))
+        Sound requestedSound;
+        if (SoundCache.TryGetValue(audioRelativePath, out requestedSound))
         {
-            if(Raylib.IsSoundValid(RequestedSound))
-                return RequestedSound;
+            if(Raylib.IsSoundValid(requestedSound))
+                return requestedSound;
             else
             {
-                _logger.Output(Logger.OutputType.Error, $"Cached sound is not valid?!: {AudioRelativePath}", Logger.OutputLevel.Error);
+                _logger.Output(Logger.OutputType.Error, $"Cached sound is not valid?!: {audioRelativePath}", Logger.OutputLevel.Error);
 
-                Raylib.UnloadSound(RequestedSound);
-                SoundCache.Remove(AudioRelativePath);
+                Raylib.UnloadSound(requestedSound);
+                SoundCache.Remove(audioRelativePath);
 
-                CurrentBadAssetCount++;
-                if (BadAssetNukeMargin <= CurrentBadAssetCount)
-                { 
-                    ClearSoundCache();
-                    _logger.Output(Logger.OutputType.Notice, "Cleared sound cache.", Logger.OutputLevel.Info);
-                    CurrentBadAssetCount = 0;
-                }
-                  
+                HandleInvalidCacheSounds();
 
                 return InvalidSound; // Invalid!
             }
@@ -126,6 +119,17 @@ public static class ResourceLoader
             return InvalidSound; // Invalid!
     }
 
+    internal static void HandleInvalidCacheSounds()
+    {
+        CurrentBadAssetCount++;
+        if (BadAssetNukeMargin <= CurrentBadAssetCount)
+        { 
+            ClearSoundCache();
+            _logger.Output(Logger.OutputType.Warning, "Cleared sound cache due to invalid sounds", Logger.OutputLevel.Warning);
+            CurrentBadAssetCount = 0;
+        }
+    }
+    
     public static void ClearSoundCache()
     {
         foreach(var sound in SoundCache.Values)
