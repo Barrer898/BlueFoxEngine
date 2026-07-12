@@ -14,17 +14,17 @@ namespace BlueFoxEngine.Scenes
 
     public static class SceneManager
     {
-        private static Scene currentScene = null;
+        private static Scene? _currentScene = null;
 
         public static void SetCurrentScene(Scene scene)
         {
-            if (currentScene != null)
+            if (_currentScene != null)
             {
-                currentScene.Unload();
+                _currentScene.Unload();
             }
 
-            currentScene = scene;
-            currentScene.Load();
+            _currentScene = scene;
+            _currentScene.Load();
         }
 
         public static void Run()
@@ -35,14 +35,14 @@ namespace BlueFoxEngine.Scenes
             {
                 double deltaTime = Raylib.GetFrameTime();
 
-                if (currentScene != null)
+                if (_currentScene != null)
                 {
-                    currentScene.Update(deltaTime);
+                    _currentScene.Update(deltaTime);
                     Raylib.BeginDrawing();
 
                     Raylib.ClearBackground(Color.Black);
 
-                    currentScene.Draw();
+                    _currentScene.Draw();
 
                     Raylib.EndDrawing();
                 }

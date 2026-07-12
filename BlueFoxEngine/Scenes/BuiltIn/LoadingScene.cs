@@ -1,4 +1,4 @@
-using BlueFoxEngine.Scenes;
+using BlueFoxEngine.Assets.Audio;
 using BlueFoxEngine.Helper;
 using Raylib_cs;
 
@@ -32,6 +32,11 @@ public sealed class LoadingScene : Scene
         int x = Screen.Width - Text.MeasureTextWidth("Loading...", 24) - margin;
         int y = Screen.Height - 24 - margin;
 
-        Raylib.DrawText("Loading...", x, y, 24, Color.White);
+        if (alpha < 0.0001f)
+        {
+            SoundPlayer.PlaySound("Sound/blipClick.wav",1f);
+        }
+        
+        Raylib.DrawText("Loading...", x, y, 24, color);
     }
 }

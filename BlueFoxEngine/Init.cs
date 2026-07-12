@@ -15,7 +15,7 @@ static class Init
                                                  $"Built: {EngineInfo.EngineBuildDate}\n" +
                                                  $"=====================", Logger.OutputLevel.Info);
         _logger.Output(Logger.OutputType.Info, "Reading arguments", Logger.OutputLevel.Trace);
-        Args.PhraseArgumentsAndInitialize(args);
+        Args.ParseArgumentsAndInitialize(args);
         _logger.Output(Logger.OutputType.Info, "Reading EngineConfig...", Logger.OutputLevel.Debug);
         try
         {
@@ -47,7 +47,7 @@ public class Args
 {
     public static Arguments _arguments;
 
-    public static void PhraseArgumentsAndInitialize(string[] args)
+    public static void ParseArgumentsAndInitialize(string[] args)
     {
         _arguments = new Arguments(args);
     }
