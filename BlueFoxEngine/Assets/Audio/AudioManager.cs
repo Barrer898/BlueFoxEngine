@@ -28,6 +28,7 @@ namespace BlueFoxEngine.Assets.Audio
             AssetLoader.CachedSound sound = AssetLoader.LoadSoundResource(audioRelativePath); // volume gets clamped in the function no need to pre-clamp
             if(sound.IsValid)
             {
+                
                 volume = Math.Clamp(volume, 0.0f, 1.0f);
                 Raylib.SetSoundVolume(sound.Sound, volume); // for good measure :P
                 Raylib.PlaySound(sound.Sound);
@@ -36,7 +37,7 @@ namespace BlueFoxEngine.Assets.Audio
             }
             else
             {
-                _logger.Output(Logger.OutputType.Warning, "The sound attempted to play was not valid", Logger.OutputLevel.Warning);
+                _logger.Output(Logger.OutputType.Notice, "The sound attempted to play was not valid or not loaded attempting to load", Logger.OutputLevel.Info);
             }
         }
         public static void PlayMusic(Sound sound, float volume, int loopCount)

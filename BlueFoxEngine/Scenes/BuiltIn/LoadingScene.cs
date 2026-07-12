@@ -1,3 +1,4 @@
+using BlueFoxEngine.Assets;
 using BlueFoxEngine.Assets.Audio;
 using BlueFoxEngine.Helper;
 using Raylib_cs;
@@ -6,6 +7,7 @@ namespace BlueFoxEngine.Scenes.BuiltIn;
 public sealed class LoadingScene : Scene
 {
     private double _time;
+
 
     public override void Load()
     {

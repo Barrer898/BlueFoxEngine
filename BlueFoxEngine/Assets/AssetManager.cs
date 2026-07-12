@@ -29,7 +29,7 @@ public static class AssetLoader
         public void decreaseReferenceCount()
         {
             if(this.IsValid)
-                this.ReferenceCount--;
+            this.ReferenceCount--;
         }
         
         public CachedSound(Sound sound, int referenceCount)
@@ -86,6 +86,7 @@ public static class AssetLoader
             {
                 _logger.Output(Logger.OutputType.Info, "Found Cache!", Logger.OutputLevel.Debug);
                 sound = RequestedSound;
+                RequestedSound.increaseReferenceCount();
                 return true;  
             }
             string FullLoadPath = System.IO.Path.Combine([BaseDirectory,
@@ -100,7 +101,6 @@ public static class AssetLoader
             {
                 AddSoundToCache(AudioRelativePath, newRequestedSound);
                 sound = SoundCache[AudioRelativePath];
-                sound.increaseReferenceCount();
                 return true;
             }
             else
@@ -121,7 +121,7 @@ public static class AssetLoader
     internal static void AddSoundToCache(string AudioRelativePath, Sound _Sound)
     {
         if(Raylib.IsSoundValid(_Sound) && SoundCache.Count < MaxSoundCacheAmount)
-            SoundCache.Add(AudioRelativePath, new CachedSound(_Sound, 0));
+            SoundCache.Add(AudioRelativePath, new CachedSound(_Sound, 1));
         
         _logger.Output(Logger.OutputType.Info, $"Current SoundCache.Count: {SoundCache.Count}", Logger.OutputLevel.Info);
             
