@@ -16,6 +16,7 @@ namespace BlueFoxEngine.Assets.Audio
                 Raylib.SetSoundVolume(sound, volume);
                 Raylib.PlaySound(sound);
                 _logger.Output(Logger.OutputType.Info, $"Playing sound {sound.ToString()}", Logger.OutputLevel.Debug);
+
             }
             else
             {
@@ -24,13 +25,14 @@ namespace BlueFoxEngine.Assets.Audio
         }
         public static void PlaySound(string audioRelativePath, float volume)
         {
-            Sound sound = AssetLoader.LoadSoundResource(audioRelativePath); // volume gets clamped in the function no need to pre-clamp
-            if(Raylib.IsSoundValid(sound))
+            AssetLoader.CachedSound sound = AssetLoader.LoadSoundResource(audioRelativePath); // volume gets clamped in the function no need to pre-clamp
+            if(sound.IsValid)
             {
                 volume = Math.Clamp(volume, 0.0f, 1.0f);
-                Raylib.SetSoundVolume(sound, volume); // for good measure :P
-                Raylib.PlaySound(sound);
+                Raylib.SetSoundVolume(sound.Sound, volume); // for good measure :P
+                Raylib.PlaySound(sound.Sound);
                 _logger.Output(Logger.OutputType.Info, $"Playing sound {audioRelativePath}", Logger.OutputLevel.Debug);
+                _logger.Output(Logger.OutputType.Info, $"Current Ref count for this sound {sound.ReferenceCount}", Logger.OutputLevel.Trace);
             }
             else
             {
