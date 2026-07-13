@@ -1,17 +1,21 @@
 using BlueFoxEngine.Assets;
 using BlueFoxEngine.Assets.Audio;
 using BlueFoxEngine.Helper;
+using BlueFoxEngine.Logging;
 using Raylib_cs;
 
 namespace BlueFoxEngine.Scenes.BuiltIn;
-public sealed class LoadingScene : Scene
+public sealed class DebugScene : Scene
 {
     private double _time;
-
+    private CachedSound testSound;
+    private Logger _logger = new("LoadingScene");
+    private bool testAudioLoader = false;
 
     public override void Load()
     {
         _time = 0;
+        testSound = AssetLoader.LoadSoundResource("Sound/blipClick.wav");
     }
 
     public override void Unload()
@@ -36,7 +40,14 @@ public sealed class LoadingScene : Scene
 
         if (alpha < 0.0001f)
         {
-            SoundPlayer.PlaySound("Sound/blipClick.wav",1f);
+            SoundPlayer.PlaySound(testSound.Sound ,1f);
+            _logger.Output(Logger.OutputType.Info, $"{testSound.ReferenceCount}", Logger.OutputLevel.Debug);
+            if (!testAudioLoader)
+            {
+                CachedSound testSound2 = AssetLoader.LoadSoundResource("Sound/blipClick.wav");
+                testAudioLoader = true;
+            }
+            _logger.Output(Logger.OutputType.Info, $"{testSound.ReferenceCount}", Logger.OutputLevel.Debug);
         }
         
         Raylib.DrawText("Loading...", x, y, 24, color);

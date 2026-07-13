@@ -23,7 +23,7 @@ namespace BlueFoxEngine.Assets.Audio
                 _logger.Output(Logger.OutputType.Warning, "The sound attempted to play was not valid", Logger.OutputLevel.Warning);
             }
         }
-        public static void PlaySound(string audioRelativePath, float volume)
+        /*public static void PlaySound(string audioRelativePath, float volume)
         {
             AssetLoader.CachedSound sound = AssetLoader.LoadSoundResource(audioRelativePath); // volume gets clamped in the function no need to pre-clamp
             if(sound.IsValid)
@@ -39,7 +39,7 @@ namespace BlueFoxEngine.Assets.Audio
             {
                 _logger.Output(Logger.OutputType.Notice, "The sound attempted to play was not valid or not loaded attempting to load", Logger.OutputLevel.Info);
             }
-        }
+        }*/
         public static void PlayMusic(Sound sound, float volume, int loopCount)
         {
             // TODO

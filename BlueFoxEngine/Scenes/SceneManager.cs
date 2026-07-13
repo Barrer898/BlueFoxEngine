@@ -29,7 +29,6 @@ namespace BlueFoxEngine.Scenes
 
         public static void Run()
         {
-            RaylibInit.Initialize();
 
             while (!Raylib.WindowShouldClose())
             {
