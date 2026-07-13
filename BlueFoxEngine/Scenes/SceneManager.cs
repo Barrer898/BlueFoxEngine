@@ -1,5 +1,3 @@
-using System;
-using BlueFoxEngine.Rendering;
 using Raylib_cs;
 
 namespace BlueFoxEngine.Scenes
@@ -39,14 +37,12 @@ namespace BlueFoxEngine.Scenes
                     _currentScene.Update(deltaTime);
                     Raylib.BeginDrawing();
 
-                    Raylib.ClearBackground(Color.Black);
-
                     _currentScene.Draw();
 
                     Raylib.EndDrawing();
                 }
             }
-            //RaylibInit.Close();
+            EngineCore.Close();
         }
     }
 }
