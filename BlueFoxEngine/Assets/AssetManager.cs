@@ -9,83 +9,171 @@ namespace BlueFoxEngine.Assets;
 
 public static class AssetLoader
 {
+    private static Logger _logger = new Logger("AssetManager");
+    
     private static readonly string BaseDirectory = AppContext.BaseDirectory;
 
     internal const uint BadAssetNukeMargin = 10;
     internal static uint CurrentBadAssetCount = 0;
 
     internal const uint MaxSoundCacheAmount = 250;
-    private static Dictionary<string, CachedSound> SoundCache = new Dictionary<string, CachedSound>();
+    private static readonly AssetCache<Sound> SoundCache = new();
+    private static readonly AssetCache<Music> _musicCache = new();
+    private static readonly AssetCache<Texture2D> _texturesCache = new();
+    private static readonly AssetCache<Font> _fontsCache = new();
+    private static bool SoundCacheClearingInProgress = false;
     
-    
-
-    private static Logger _logger = new Logger("AssetManager");
-
-    public static CachedSound LoadSoundResource(string AudioRelativePath)
+    public class CachedAsset<T>
     {
-        CachedSound RequestedSound;
-        if (TryLoadSound(AudioRelativePath, out RequestedSound))
+        public T Asset { get; }
+
+        public int ReferenceCount { get; private set; }
+
+        public bool IsValid { get; }
+
+        public CachedAsset(T asset, bool valid)
         {
-            _logger.Output(Logger.OutputType.Info, "valid", Logger.OutputLevel.Trace);
-            return RequestedSound;   
+            Asset = asset;
+            IsValid = valid;
+            ReferenceCount = 1;
+        }
+
+        public void IncreaseReferenceCount()
+            => ReferenceCount++;
+
+        public void DecreaseReferenceCount()
+            => ReferenceCount = Math.Max(0, ReferenceCount - 1);
+    }
+    
+    public class AssetCache<T>()
+    {
+        private readonly Dictionary<string, CachedAsset<T>> _cache = new();
+
+        public bool TryGet(string path, out CachedAsset<T> asset)
+        {
+            return _cache.TryGetValue(path, out asset!);
+        }
+
+        public void Add(string path, CachedAsset<T> asset)
+        {
+            _cache[path] = asset;
+        }
+
+        public bool Remove(string path)
+        {
+            return _cache.Remove(path);
+        }
+
+        public int Count => _cache.Count;
+
+        public CachedAsset<T> GetViaIndex(int index)
+        {
+            return _cache.Values.ElementAt(index);
+        }
+        
+        public void Clear()
+        {
+            _cache.Clear();
+        }
+    }
+    
+    public static CachedAsset<T> Load<T>(
+        AssetCache<T> cache,
+        string path,
+        Func<string, T> loader,
+        Func<T, bool> validator)
+    {
+        if (cache.TryGet(path, out var cached))
+        {
+            cached.IncreaseReferenceCount();
+            return cached;
+        }
+
+        T asset = loader(path);
+
+        if (!validator(asset))
+            return new CachedAsset<T>(asset, false);
+
+        cached = new CachedAsset<T>(asset, true);
+
+        cache.Add(path, cached);
+
+        return cached;
+    }
+
+    public static CachedAsset<Sound> LoadSound(string path)
+    {
+        return Load(
+            SoundCache,
+            path,
+            Raylib.LoadSound,
+            sound => Raylib.IsSoundValid(sound));
+    }
+    
+    public static Sound? LoadSoundResource(string audioRelativePath)
+    {
+        if (TryLoadSound(audioRelativePath, out var requestedSound))
+        {
+            return requestedSound.Asset;   
         }
         else
         {
-            _logger.Output(Logger.OutputType.Info, "invalid!", Logger.OutputLevel.Trace);
-            return InvalidAudio.InvalidCachedSound; // Invalid!
+            _logger.Output(Logger.OutputType.Warning, "Failed to load requested sound", Logger.OutputLevel.Warning);
+            return null; // Invalid!
         }
     }
 
-    public static bool UnloadSoundResource(string AudioRelativePath)
+    public static bool UnloadSoundResource(string audioRelativePath)
     {
-        CachedSound SoundToUnload = FindSoundInCache(AudioRelativePath);
-        if(SoundToUnload.IsValid)
+        Sound soundToUnload = FindSoundInCache(audioRelativePath);
+        if(Raylib.IsSoundValid(soundToUnload) && SoundCache.TryGet(audioRelativePath, out var cachedSoundAsset))
         {
-            SoundToUnload.DecreaseReferenceCount();
-            if(SoundToUnload.ReferenceCount == 0)
+            cachedSoundAsset.DecreaseReferenceCount();
+            if(cachedSoundAsset.ReferenceCount == 0)
             {
-                Raylib.UnloadSound(SoundToUnload.Sound);
-                SoundCache.Remove(AudioRelativePath); // We know that AudioRelativePath is valid as FindSoundInCache() didn't return null
+                Raylib.UnloadSound(soundToUnload);
+                SoundCache.Remove(audioRelativePath); // We know that AudioRelativePath is valid as FindSoundInCache() didn't return null
             }
             return true;
         }
         else
+        {
+            _logger.Output(Logger.OutputType.ExceptionThrownWarning, "Failed to unload sound resource",new KeyNotFoundException($"The sound asset with relative path '{audioRelativePath}' was not found in the cache."),Logger.OutputLevel.Warning); 
             return false;
-        
+        }
     }
 
-    public static bool TryLoadSound(string AudioRelativePath, out CachedSound sound)
+    public static bool TryLoadSound(string audioRelativePath, out CachedAsset<Sound>? sound)
     {
         try
         {
-            AudioRelativePath = AudioRelativePath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            audioRelativePath = audioRelativePath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-            CachedSound RequestedSound = FindSoundInCache(AudioRelativePath);
-
-            if(RequestedSound.IsValid)
+            if(SoundCache.TryGet(audioRelativePath, out var cachedSoundAsset) && cachedSoundAsset.IsValid)
             {
                 _logger.Output(Logger.OutputType.Info, "Found Cache!", Logger.OutputLevel.Debug);
-                sound = RequestedSound;
-                RequestedSound.IncreaseReferenceCount();
+                cachedSoundAsset.IncreaseReferenceCount();
+                sound = cachedSoundAsset;
                 return true;  
             }
             string FullLoadPath = System.IO.Path.Combine([BaseDirectory,
                             CurrentEngineConfig._EngineConfig.Assets.Directory,
                             "Audio",
-                            AudioRelativePath]
+                            audioRelativePath]
                         );
 
-            Sound newRequestedSound = Raylib.LoadSound(FullLoadPath);
+            CachedAsset<Sound> newRequestedSound = LoadSound(FullLoadPath);
 
-            if(Raylib.IsSoundValid(newRequestedSound))
+            if(newRequestedSound.IsValid)
             {
-                AddSoundToCache(AudioRelativePath, newRequestedSound);
-                sound = SoundCache[AudioRelativePath];
+                AddSoundToCache(audioRelativePath, newRequestedSound);
+                sound = newRequestedSound;
                 return true;
             }
             else
             {
-                sound = InvalidAudio.InvalidCachedSound; // Invalid!
+                sound = null; // Invalid!
+                _logger.Output(Logger.OutputType.Warning, $"Failed to load sound {audioRelativePath}", Logger.OutputLevel.Warning);
                 return false;
             }
 
@@ -93,41 +181,41 @@ public static class AssetLoader
         } catch(Exception e)
         {
             _logger.Output(Logger.OutputType.ExceptionThrownError, "Uh oh! Failed to load sound...", e, Logger.OutputLevel.Error);
-            sound = InvalidAudio.InvalidCachedSound; // Invalid!
+            sound = null; // Invalid!
             return false;
         }
     }
 
-    internal static void AddSoundToCache(string AudioRelativePath, Sound _Sound)
+    internal static void AddSoundToCache(string AudioRelativePath, CachedAsset<Sound> _Sound)
     {
-        if(Raylib.IsSoundValid(_Sound) && SoundCache.Count < MaxSoundCacheAmount)
-            SoundCache.Add(AudioRelativePath, new CachedSound(_Sound, 1));
+        if(_Sound.IsValid && SoundCache.Count < MaxSoundCacheAmount)
+            SoundCache.Add(AudioRelativePath, _Sound);
         
         _logger.Output(Logger.OutputType.Info, $"Current SoundCache.Count: {SoundCache.Count}", Logger.OutputLevel.Info);
             
     }
 
-    internal static CachedSound FindSoundInCache(string audioRelativePath)
+    internal static Sound FindSoundInCache(string audioRelativePath)
     {
-        CachedSound requestedSound;
-        if (SoundCache.TryGetValue(audioRelativePath, out requestedSound))
+        CachedAsset<Sound> requestedSound;
+        if (SoundCache.TryGet(audioRelativePath, out requestedSound))
         {
             if(requestedSound.IsValid)
-                return requestedSound;
+                return requestedSound.Asset;
             else
             {
                 _logger.Output(Logger.OutputType.Error, $"Cached sound is not valid?!: {audioRelativePath}", Logger.OutputLevel.Error);
 
-                Raylib.UnloadSound(requestedSound.Sound);
+                Raylib.UnloadSound(requestedSound.Asset);
                 SoundCache.Remove(audioRelativePath);
 
                 HandleInvalidCacheSounds();
 
-                return InvalidAudio.InvalidCachedSound; // Invalid!
+                return InvalidAudio.InvalidSound; // Invalid!
             }
         }
         else 
-            return InvalidAudio.InvalidCachedSound; // Invalid!
+            return InvalidAudio.InvalidSound; // Invalid!
     }
 
     internal static void HandleInvalidCacheSounds()
@@ -141,11 +229,14 @@ public static class AssetLoader
         }
     }
     
-    public static void ClearSoundCache()
+    public static void ClearSoundCache() // This is... functional I guess, horrible but shouldn't make the engine throw "free(): invalid pointer"... I hope at least -B
     {
-        foreach(var sound in SoundCache.Values)
+        for (int i = 0; i >= SoundCache.Count; i++) 
         {
-            Raylib.UnloadSound(sound.Sound);
+            if(SoundCache.Count != 0)
+                Raylib.UnloadSound(SoundCache.GetViaIndex(0).Asset);
+            else
+                break;
         }
 
         SoundCache.Clear();
