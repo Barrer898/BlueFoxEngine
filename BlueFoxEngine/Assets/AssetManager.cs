@@ -48,12 +48,13 @@ public static class AssetLoader
     public class AssetCache<T>()
     {
         private readonly Dictionary<string, CachedAsset<T>> _cache = new();
+        internal IReadOnlyDictionary<string, CachedAsset<T>> PublicCache => _cache;
 
         public bool TryGet(string path, out CachedAsset<T> asset)
         {
             return _cache.TryGetValue(path, out asset!);
         }
-
+        
         public void Add(string path, CachedAsset<T> asset)
         {
             _cache[path] = asset;
@@ -88,15 +89,19 @@ public static class AssetLoader
             cached.IncreaseReferenceCount();
             return cached;
         }
-
+        
+        if (cache.PublicCache.ContainsKey(path))
+            throw new InvalidOperationException(
+                $"Asset '{path}' already exists in cache.");
+        
+        
         T asset = loader(path);
 
         if (!validator(asset))
             return new CachedAsset<T>(asset, false);
 
         cached = new CachedAsset<T>(asset, true);
-
-        cache.Add(path, cached);
+        
 
         return cached;
     }
@@ -229,16 +234,13 @@ public static class AssetLoader
         }
     }
     
-    public static void ClearSoundCache() // This is... functional I guess, horrible but shouldn't make the engine throw "free(): invalid pointer"... I hope at least -B
+    public static void ClearSoundCache() 
     {
-        for (int i = 0; i >= SoundCache.Count; i++) 
+        if(SoundCache.Count != 0)
         {
-            if(SoundCache.Count != 0)
-                Raylib.UnloadSound(SoundCache.GetViaIndex(0).Asset);
-            else
-                break;
+            foreach (var asset in SoundCache.PublicCache.Values)
+                Raylib.UnloadSound(asset.Asset);
+            SoundCache.Clear();
         }
-
-        SoundCache.Clear();
     }
 }

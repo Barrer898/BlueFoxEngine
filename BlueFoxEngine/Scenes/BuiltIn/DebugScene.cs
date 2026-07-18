@@ -45,10 +45,11 @@ public sealed class DebugScene : Scene
             if (!testAudioLoader)
             {
                 Sound testSound2 = (Sound)AssetLoader.LoadSoundResource("Sound/blipClick.wav");
+                AssetLoader.ClearSoundCache();
                 testAudioLoader = true;
             }
             //_logger.Output(Logger.OutputType.Info, $"{testSound}", Logger.OutputLevel.Debug);
-            AssetLoader.ClearSoundCache();
+            
         }
         
         Raylib.DrawText("Loading...", x, y, 24, color);
