@@ -36,6 +36,8 @@ public class AudioConfig
     [JsonPropertyName("musicVolume")] public float MusicVolume { get; set; } = 100f;
 
     [JsonPropertyName("sfxVolume")] public float SfxVolume { get; set; } = 100f;
+    
+    [JsonPropertyName("musicLayerCount")] public byte MusicLayerCount { get; set; } = 25;
 }
 
 public class LoggingConfig

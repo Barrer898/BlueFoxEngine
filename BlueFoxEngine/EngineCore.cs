@@ -83,8 +83,10 @@ public class EngineCore
 
     public static void Close()
     {
+        _logger.Output(Logger.OutputType.Info, "Shutting down...", Logger.OutputLevel.Info);
         // Unload all resources and close the window
         Raylib.CloseAudioDevice();  // Close the audio device first
         Raylib.CloseWindow();
+        _logger.Output(Logger.OutputType.Info, "Goodbye!", Logger.OutputLevel.Info);
     }
 }

@@ -18,7 +18,7 @@ public static class AssetLoader
 
     internal const uint MaxSoundCacheAmount = 250;
     private static readonly AssetCache<Sound> SoundCache = new();
-    private static readonly AssetCache<Music> _musicCache = new();
+    private static readonly AssetCache<Raylib_cs.Music> MusicCache = new();
     private static readonly AssetCache<Texture2D> _texturesCache = new();
     private static readonly AssetCache<Font> _fontsCache = new();
     private static bool SoundCacheClearingInProgress = false;
@@ -57,6 +57,10 @@ public static class AssetLoader
         
         public void Add(string path, CachedAsset<T> asset)
         {
+            if (_cache.ContainsKey(path))
+                throw new InvalidOperationException(
+                    $"Asset '{path}' already exists in cache.");
+            
             _cache[path] = asset;
         }
 
@@ -79,21 +83,17 @@ public static class AssetLoader
     }
     
     public static CachedAsset<T> Load<T>(
-        AssetCache<T> cache,
+        AssetCache<T>? cache,
         string path,
         Func<string, T> loader,
         Func<T, bool> validator)
     {
-        if (cache.TryGet(path, out var cached))
+        
+        if (cache != null && cache.TryGet(path, out var cached))
         {
             cached.IncreaseReferenceCount();
             return cached;
         }
-        
-        if (cache.PublicCache.ContainsKey(path))
-            throw new InvalidOperationException(
-                $"Asset '{path}' already exists in cache.");
-        
         
         T asset = loader(path);
 
