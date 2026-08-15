@@ -18,10 +18,12 @@ public static class AssetLoader
 
     internal const uint MaxSoundCacheAmount = 250;
     private static readonly AssetCache<Sound> SoundCache = new();
-    private static readonly AssetCache<Raylib_cs.Music> MusicCache = new();
+    private static readonly AssetCache<MusicAsset> MusicCache = new();
     private static readonly AssetCache<Texture2D> _texturesCache = new();
     private static readonly AssetCache<Font> _fontsCache = new();
     private static bool SoundCacheClearingInProgress = false;
+
+    #region Cache
     
     public class CachedAsset<T>
     {
@@ -83,13 +85,13 @@ public static class AssetLoader
     }
     
     public static CachedAsset<T> Load<T>(
-        AssetCache<T>? cache,
+        AssetCache<T> cache,
         string path,
         Func<string, T> loader,
         Func<T, bool> validator)
     {
         
-        if (cache != null && cache.TryGet(path, out var cached))
+        if (cache.TryGet(path, out var cached))
         {
             cached.IncreaseReferenceCount();
             return cached;
@@ -105,7 +107,9 @@ public static class AssetLoader
 
         return cached;
     }
-
+    
+    #endregion
+    #region Sound
     public static CachedAsset<Sound> LoadSound(string path)
     {
         return Load(
@@ -123,7 +127,7 @@ public static class AssetLoader
         }
         else
         {
-            _logger.Output(Logger.OutputType.Warning, "Failed to load requested sound", Logger.OutputLevel.Warning);
+            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, "Failed to load requested sound");
             return null; // Invalid!
         }
     }
@@ -143,7 +147,7 @@ public static class AssetLoader
         }
         else
         {
-            _logger.Output(Logger.OutputType.ExceptionThrownWarning, "Failed to unload sound resource",new KeyNotFoundException($"The sound asset with relative path '{audioRelativePath}' was not found in the cache."),Logger.OutputLevel.Warning); 
+            _logger.Output(Logger.OutputType.ExceptionThrownWarning,Logger.OutputLevel.Warning, "Failed to unload sound resource", new KeyNotFoundException($"The sound asset with relative path '{audioRelativePath}' was not found in the cache.")); 
             return false;
         }
     }
@@ -156,7 +160,7 @@ public static class AssetLoader
 
             if(SoundCache.TryGet(audioRelativePath, out var cachedSoundAsset) && cachedSoundAsset.IsValid)
             {
-                _logger.Output(Logger.OutputType.Info, "Found Cache!", Logger.OutputLevel.Debug);
+                _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, "Found Cache!");
                 cachedSoundAsset.IncreaseReferenceCount();
                 sound = cachedSoundAsset;
                 return true;  
@@ -178,14 +182,14 @@ public static class AssetLoader
             else
             {
                 sound = null; // Invalid!
-                _logger.Output(Logger.OutputType.Warning, $"Failed to load sound {audioRelativePath}", Logger.OutputLevel.Warning);
+                _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, $"Failed to load sound {audioRelativePath}");
                 return false;
             }
 
             
         } catch(Exception e)
         {
-            _logger.Output(Logger.OutputType.ExceptionThrownError, "Uh oh! Failed to load sound...", e, Logger.OutputLevel.Error);
+            _logger.Output(Logger.OutputType.ExceptionThrownError, Logger.OutputLevel.Error, "Uh oh! Failed to load sound...", e);
             sound = null; // Invalid!
             return false;
         }
@@ -196,7 +200,7 @@ public static class AssetLoader
         if(_Sound.IsValid && SoundCache.Count < MaxSoundCacheAmount)
             SoundCache.Add(AudioRelativePath, _Sound);
         
-        _logger.Output(Logger.OutputType.Info, $"Current SoundCache.Count: {SoundCache.Count}", Logger.OutputLevel.Info);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Info, $"Current SoundCache.Count: {SoundCache.Count}");
             
     }
 
@@ -209,7 +213,7 @@ public static class AssetLoader
                 return requestedSound.Asset;
             else
             {
-                _logger.Output(Logger.OutputType.Error, $"Cached sound is not valid?!: {audioRelativePath}", Logger.OutputLevel.Error);
+                _logger.Output(Logger.OutputType.Error, Logger.OutputLevel.Error, $"Cached sound is not valid?!: {audioRelativePath}");
 
                 Raylib.UnloadSound(requestedSound.Asset);
                 SoundCache.Remove(audioRelativePath);
@@ -229,7 +233,7 @@ public static class AssetLoader
         if (BadAssetNukeMargin <= CurrentBadAssetCount)
         { 
             ClearSoundCache();
-            _logger.Output(Logger.OutputType.Warning, "Cleared sound cache due to invalid sounds", Logger.OutputLevel.Warning);
+            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, "Cleared sound cache due to invalid sounds");
             CurrentBadAssetCount = 0;
         }
     }
@@ -243,4 +247,251 @@ public static class AssetLoader
             SoundCache.Clear();
         }
     }
+    #endregion 
+    #region Music
+
+    /// <summary>
+    /// Loads a Raylib music stream and wraps it inside a MusicAsset.
+    /// 
+    /// This method does not automatically add the asset to the cache.
+    /// The caller is responsible for adding it using the normalized
+    /// engine-relative asset path.
+    /// </summary>
+    public static CachedAsset<MusicAsset> LoadMusic(string path)
+    {
+        return Load(
+            MusicCache,
+            path,
+            musicPath => new MusicAsset(Raylib.LoadMusicStream(musicPath)),
+            music => music.IsValid);
+    }
+
+    /// <summary>
+    /// Loads a music resource using an engine-relative path.
+    ///
+    /// Example:
+    ///     "Music/Battle.ogg"
+    ///
+    /// The path is resolved relative to the engine's configured
+    /// Audio directory before being passed to Raylib.
+    /// </summary>
+    public static MusicAsset? LoadMusicResource(string musicRelativePath)
+    {
+        if (TryLoadMusic(musicRelativePath, out var requestedMusic))
+        {
+            return requestedMusic!.Asset;
+        }
+
+        _logger.Output(
+            Logger.OutputType.Warning,
+            Logger.OutputLevel.Warning, "Failed to load requested music.");
+
+        return null;
+    }
+
+    /// <summary>
+    /// Attempts to load a music resource from the cache or disk.
+    ///
+    /// If the music is already cached, its reference count is increased.
+    /// Otherwise, the music is loaded from disk and inserted into the cache.
+    /// </summary>
+    public static bool TryLoadMusic(
+        string musicRelativePath,
+        out CachedAsset<MusicAsset>? music)
+    {
+        try
+        {
+            // Normalize the path so that:
+            // "Music/Battle.ogg"
+            // "/Music/Battle.ogg"
+            // are treated as the same asset.
+            musicRelativePath = musicRelativePath.TrimStart(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar);
+
+            // Check whether this music is already loaded.
+            if (MusicCache.TryGet(
+                    musicRelativePath,
+                    out var cachedMusicAsset) &&
+                cachedMusicAsset.IsValid)
+            {
+                _logger.Output(
+                    Logger.OutputType.Info,
+                    Logger.OutputLevel.Debug, $"Found music cache entry: {musicRelativePath}");
+
+                cachedMusicAsset.IncreaseReferenceCount();
+
+                music = cachedMusicAsset;
+                return true;
+            }
+
+            // Convert the engine-relative path into the actual filesystem path.
+            string fullLoadPath = Path.Combine(
+                BaseDirectory,
+                CurrentEngineConfig._EngineConfig.Assets.Directory,
+                "Audio",
+                musicRelativePath);
+
+            // Load the music stream through the generic loader.
+            CachedAsset<MusicAsset> newRequestedMusic =
+                LoadMusic(fullLoadPath);
+
+            if (newRequestedMusic.IsValid)
+            {
+                AddMusicToCache(
+                    musicRelativePath,
+                    newRequestedMusic);
+
+                music = newRequestedMusic;
+                return true;
+            }
+
+            music = null;
+
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning, $"Failed to load music {musicRelativePath}");
+
+            return false;
+        }
+        catch (Exception e)
+        {
+            _logger.Output(
+                Logger.OutputType.ExceptionThrownError,
+                Logger.OutputLevel.Error, "Uh oh! Failed to load music...", e);
+
+            music = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Adds a valid MusicAsset to the music cache.
+    ///
+    /// The cache key is always the engine-relative asset path rather
+    /// than the absolute filesystem path.
+    /// </summary>
+    internal static void AddMusicToCache(
+        string musicRelativePath,
+        CachedAsset<MusicAsset> music)
+    {
+        if (music.IsValid)
+            MusicCache.Add(musicRelativePath, music);
+
+        _logger.Output(
+            Logger.OutputType.Info,
+            Logger.OutputLevel.Info, $"Current MusicCache.Count: {MusicCache.Count}");
+    }
+
+    /// <summary>
+    /// Unloads one reference to a music resource.
+    ///
+    /// The underlying Raylib music stream is only unloaded when the
+    /// reference count reaches zero.
+    /// </summary>
+    public static bool UnloadMusicResource(string musicRelativePath)
+    {
+        musicRelativePath = musicRelativePath.TrimStart(
+            Path.DirectorySeparatorChar,
+            Path.AltDirectorySeparatorChar);
+
+        if (MusicCache.TryGet(
+                musicRelativePath,
+                out var cachedMusicAsset) &&
+            cachedMusicAsset.IsValid)
+        {
+            cachedMusicAsset.DecreaseReferenceCount();
+
+            _logger.Output(
+                Logger.OutputType.Info,
+                Logger.OutputLevel.Debug, $"Unloading music reference: {musicRelativePath}");
+
+            _logger.Output(
+                Logger.OutputType.Info,
+                Logger.OutputLevel.Trace, $"Current Ref count: {cachedMusicAsset.ReferenceCount}");
+
+            // Other users still have a reference to this asset.
+            if (cachedMusicAsset.ReferenceCount > 0)
+                return true;
+
+            // Nobody owns the asset anymore.
+            Raylib.UnloadMusicStream(
+                cachedMusicAsset.Asset.MusicValue);
+
+            MusicCache.Remove(musicRelativePath);
+
+            return true;
+        }
+
+        _logger.Output(
+            Logger.OutputType.ExceptionThrownWarning,
+            Logger.OutputLevel.Warning, "Failed to unload music resource.", new KeyNotFoundException(
+                $"The music asset with relative path " +
+                $"'{musicRelativePath}' was not found in the cache."));
+
+        return false;
+    }
+
+    /// <summary>
+    /// Retrieves a music asset directly from the cache.
+    ///
+    /// Returns null if the asset is not currently cached or if the
+    /// cached asset has become invalid.
+    /// </summary>
+    internal static MusicAsset? FindMusicInCache(
+        string musicRelativePath)
+    {
+        musicRelativePath = musicRelativePath.TrimStart(
+            Path.DirectorySeparatorChar,
+            Path.AltDirectorySeparatorChar);
+
+        if (MusicCache.TryGet(
+                musicRelativePath,
+                out var requestedMusic))
+        {
+            if (requestedMusic.IsValid)
+                return requestedMusic.Asset;
+
+            _logger.Output(
+                Logger.OutputType.Error,
+                Logger.OutputLevel.Error, $"Cached music is not valid?!: {musicRelativePath}");
+
+            // Remove the invalid cache entry.
+            MusicCache.Remove(musicRelativePath);
+
+            return null;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Unloads every music stream currently stored in the cache.
+    ///
+    /// This should generally only be used when shutting down the engine
+    /// or when deliberately clearing all loaded music.
+    /// </summary>
+    public static void ClearMusicCache()
+    {
+        if (MusicCache.Count == 0)
+            return;
+
+        foreach (var asset in MusicCache.PublicCache.Values)
+        {
+            if (!asset.IsValid)
+                continue;
+
+            Raylib.UnloadMusicStream(
+                asset.Asset.MusicValue);
+        }
+
+        MusicCache.Clear();
+
+        _logger.Output(
+            Logger.OutputType.Info,
+            Logger.OutputLevel.Debug, "Cleared music cache.");
+    }
+
+    #endregion
+    
 }

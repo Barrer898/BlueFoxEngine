@@ -62,7 +62,7 @@ public class Logger
             this.CurrentOutputLevel = newOutputLevel;
     }
     
-    public void Output(OutputType outputType, string message, ConsoleColor? primaryColorOverride,
+    public void Output(OutputType outputType, ConsoleColor? primaryColorOverride, string message,
         ConsoleColor? secondaryColorOverride, OutputLevel outputLevel, Exception? exception = null)
     {
         if (outputLevel <= this.CurrentOutputLevel)
@@ -109,14 +109,14 @@ public class Logger
         }
     }
 
-    public void Output(OutputType outputType, string message, Exception? exception, OutputLevel outputLevel)
+    public void Output(OutputType outputType, OutputLevel outputLevel, string message, Exception? exception)
     {
-        Output(outputType, message, null, null, outputLevel, exception);
+        Output(outputType, null, message, null, outputLevel, exception);
     }
 
-    public void Output(OutputType outputType, string message , OutputLevel outputLevel)
+    public void Output(OutputType outputType, OutputLevel outputLevel, string message)
     {
-        Output(outputType, message, null, outputLevel);
+        Output(outputType, outputLevel, message, null);
     }
 
     public ConsoleColor GetLoggerColorFor(OutputType outputType, bool secondary = false)

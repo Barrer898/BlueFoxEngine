@@ -15,12 +15,12 @@ namespace BlueFoxEngine.Assets
                 volume = Math.Clamp(volume, 0.0f, 1.0f);
                 Raylib.SetSoundVolume(sound, volume);
                 Raylib.PlaySound(sound);
-                _logger.Output(Logger.OutputType.Info, $"Playing sound {sound.ToString()}", Logger.OutputLevel.Debug);
+                _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, $"Playing sound {sound.ToString()}");
 
             }
             else
             {
-                _logger.Output(Logger.OutputType.Warning, "The sound attempted to play was not valid", Logger.OutputLevel.Warning);
+                _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, "The sound attempted to play was not valid");
             }
         }
 

@@ -11,27 +11,27 @@ static class Init
     private static Logger _logger = new Logger("EngineInit");
     static void Main(string[] args) // Bootstrap/Entery point YAY
     {
-        _logger.Output(Logger.OutputType.Notice, $"\n=====================\n" +
-                                                 $"BlueFoxEngine {EngineInfo.EngineVersionString}\n" +
-                                                 $"Built: {EngineInfo.EngineBuildDate}\n" +
-                                                 $"=====================", Logger.OutputLevel.Info);
+        _logger.Output(Logger.OutputType.Notice, Logger.OutputLevel.Info, $"\n=====================\n" +
+                                                                          $"BlueFoxEngine {EngineInfo.EngineVersionString}\n" +
+                                                                          $"Built: {EngineInfo.EngineBuildDate}\n" +
+                                                                          $"=====================");
         
-        _logger.Output(Logger.OutputType.Info, "Reading arguments", Logger.OutputLevel.Trace);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Trace, "Reading arguments");
         Args.ParseArgumentsAndInitialize(args);
         
-        _logger.Output(Logger.OutputType.Info, "Preparing Engine...", Logger.OutputLevel.Info);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Info, "Preparing Engine...");
         _EngineCore = BlueFoxEngine.EngineCore.CreateInstance();
         
-        _logger.Output(Logger.OutputType.Info, "Reading EngineConfig...", Logger.OutputLevel.Debug);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, "Reading EngineConfig...");
         _EngineCore.LoadEngineConfigurationFromFile();
         
-        _logger.Output(Logger.OutputType.Info, "Loaded EngineConfig, Updating Logger...", Logger.OutputLevel.Debug);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, "Loaded EngineConfig, Updating Logger...");
         _logger.UpdateOutputLevel();
         
-        _logger.Output(Logger.OutputType.Info, "Initializing Raylib", Logger.OutputLevel.Info);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Info, "Initializing Raylib");
         _EngineCore.InitializeRaylib();
         
-        _logger.Output(Logger.OutputType.Info, "Running Scene : {TBA}", Logger.OutputLevel.Info);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Info, "Running Scene : {TBA}");
         SceneManager.SetCurrentScene(new BlueFoxEngine.Scenes.BuiltIn.DebugScene());
         SceneManager.Run();
         

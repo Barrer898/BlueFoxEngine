@@ -1,6 +1,6 @@
 namespace BlueFoxEngine.Assets;
 
-public class SequencedMuisc
+public class SequencedMusicAsset
 {
     // TODO: WIP
 }

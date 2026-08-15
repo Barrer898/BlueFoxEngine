@@ -25,7 +25,7 @@ public class EngineCore
         else
         {
             InvalidOperationException e = new InvalidOperationException("Attempted to create a new instance of the EngineCore class, but an instance already exists. Only one instance of this class can be created at a time.");
-            _logger.Output(Logger.OutputType.ExceptionThrownWarning, "Attempted to GetInstance whilst one already exists, big no no!", e, Logger.OutputLevel.Warning);
+            _logger.Output(Logger.OutputType.ExceptionThrownWarning, Logger.OutputLevel.Warning, "Attempted to GetInstance whilst one already exists, big no no!", e);
             return null;
         }
     }
@@ -51,17 +51,17 @@ public class EngineCore
         }
         catch (Exception e)
         {
-            _logger.Output(Logger.OutputType.CriticalError, "Failed to load EngineConfig.", e, Logger.OutputLevel.Critical);
+            _logger.Output(Logger.OutputType.CriticalError, Logger.OutputLevel.Critical, "Failed to load EngineConfig.", e);
             Environment.Exit(0);
         }
     }
     internal void InitializeRaylib()
     {
-        _logger.Output(Logger.OutputType.Info, "Setting Flags", Logger.OutputLevel.Verbose);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Verbose, "Setting Flags");
         //Raylib.SetConfigFlags(); <-- DONT FORGET
 
         // Initialize window
-        _logger.Output(Logger.OutputType.Info, "Initialize window", Logger.OutputLevel.Verbose);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Verbose, "Initialize window");
         int width = CurrentEngineConfig._EngineConfig.Window.Width;
         int height = CurrentEngineConfig._EngineConfig.Window.Height;
         string title = CurrentEngineConfig._EngineConfig.Window.Title;
@@ -77,16 +77,16 @@ public class EngineCore
         Raylib.SetTargetFPS(targetFPS);
 
         // Initialize audio device
-        _logger.Output(Logger.OutputType.Info, "Initialize Audio", Logger.OutputLevel.Verbose);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Verbose, "Initialize Audio");
         Raylib.InitAudioDevice();
     }
 
     public static void Close()
     {
-        _logger.Output(Logger.OutputType.Info, "Shutting down...", Logger.OutputLevel.Info);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Info, "Shutting down...");
         // Unload all resources and close the window
         Raylib.CloseAudioDevice();  // Close the audio device first
         Raylib.CloseWindow();
-        _logger.Output(Logger.OutputType.Info, "Goodbye!", Logger.OutputLevel.Info);
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Info, "Goodbye!");
     }
 }
