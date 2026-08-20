@@ -119,7 +119,7 @@ public static class AssetLoader
             sound => Raylib.IsSoundValid(sound));
     }
     
-    public static Sound? LoadSoundResource(string audioRelativePath)
+    public static Sound LoadSoundResource(string audioRelativePath)
     {
         if (TryLoadSound(audioRelativePath, out var requestedSound))
         {
@@ -128,7 +128,7 @@ public static class AssetLoader
         else
         {
             _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, "Failed to load requested sound");
-            return null; // Invalid!
+            return InvalidAudio.InvalidSound; // Invalid!
         }
     }
 

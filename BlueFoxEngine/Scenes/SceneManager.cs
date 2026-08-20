@@ -75,7 +75,7 @@ namespace BlueFoxEngine.Scenes
                     {
                         
                         if (musicPlayerKeyValuePair.Value != null)
-                            musicPlayerKeyValuePair.Value.Update();
+                            musicPlayerKeyValuePair.Value.Update(deltaTime);
                     }
                 }
                 

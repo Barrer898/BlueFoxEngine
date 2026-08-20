@@ -35,13 +35,6 @@ public class MusicAsset
     /// </summary>
     public bool Looping => _Music?.Looping ?? false;
     
-    /// <summary>
-    /// Gets the number of loops remaining.
-    /// 
-    /// A value of 0 means that no additional loop limit is being
-    /// requested by MusicAsset itself.
-    /// </summary>
-    public uint LoopCount { get; private set; }
 
     /// <summary>
     /// Gets whether the underlying Raylib music stream is valid.
@@ -54,13 +47,9 @@ public class MusicAsset
     /// </summary>
     /// <param name="music">The loaded Raylib music stream.</param>
     /// <param name="looping">Whether the music should loop.</param>
-    /// <param name="loopCount">
-    /// The number of additional loops requested.
-    /// </param>
     public MusicAsset(
         Raylib_cs.Music music,
-        bool looping = false,
-        uint loopCount = 0)
+        bool looping = false)
     {
         if (!Raylib.IsMusicValid(music))
         {
@@ -77,40 +66,9 @@ public class MusicAsset
         music.Looping = looping;
 
         _Music = music;
-        LoopCount = loopCount;
     }
-
-    /// <summary>
-    /// Adds additional loops to the current loop count.
-    /// </summary>
-    public void AddLoops(uint count)
-    {
-        // Prevent uint overflow from silently wrapping around.
-        if (uint.MaxValue - LoopCount < count)
-        {
-            LoopCount = uint.MaxValue;
-
-            _logger.Output(
-                Logger.OutputType.Warning,
-                Logger.OutputLevel.Warning, "Music loop count reached uint.MaxValue.");
-
-            return;
-        }
-
-        LoopCount += count;
-    }
-
-    /// <summary>
-    /// Removes loops from the current loop count.
-    /// 
-    /// The value is clamped to zero instead of allowing uint underflow.
-    /// </summary>
-    public void SubtractLoops(uint count)
-    {
-        LoopCount = count >= LoopCount
-            ? 0
-            : LoopCount - count;
-    }
+    
+    
 
 
     
@@ -160,7 +118,6 @@ public class MusicAsset
         }
 
         _Music = music._Music;
-        LoopCount = music.LoopCount;
     }
     
 }
@@ -190,8 +147,7 @@ public class MusicLayer
 
     /// <summary>
     /// Prevents the current music from being replaced while playing.
-    /// 
-    /// This behaves similarly to Clickteam Fusion's uninterruptible
+    /// This behaves similarly to Click Team Fusion's uninterruptible
     /// music concept.
     /// </summary>
     public bool Uninterruptible { get; set; }
@@ -213,9 +169,28 @@ public class MusicLayer
 
     public int LayerIndex { get; private set; } = -1;
 
+    private double _internalCurrentTime;
+    private double _internalMusicLength;
+    
     public void SetLayerIndex(int idx)
     {
         LayerIndex = idx;
+    }
+
+    public float GetMusicTimePlayed()
+    {
+        if (this.Music != null)
+            return Raylib.GetMusicTimePlayed(this.Music.MusicValue);
+        else
+            return 0f;
+    }
+    
+    public float GetMusicTimeLength()
+    {
+        if (this.Music != null)
+            return Raylib.GetMusicTimeLength(this.Music.MusicValue);
+        else
+            return 0f;
     }
     
     /// <summary>
@@ -226,7 +201,37 @@ public class MusicLayer
     /// <summary>
     /// Gets the number of additional loops remaining for this layer.
     /// </summary>
-    public uint LoopCount { get; private set; }
+
+    public uint LoopCountLeft { get; private set; }
+
+    public void AddLoops(uint count)
+    {
+        // Prevent uint overflow from silently wrapping around.
+        if (uint.MaxValue - LoopCountLeft < count)
+        {
+            LoopCountLeft = uint.MaxValue;
+
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning, "Music loop count reached uint.MaxValue.");
+
+            return;
+        }
+
+        LoopCountLeft += count;
+    }
+
+    /// <summary>
+    /// Removes loops from the current loop count.
+    /// 
+    /// The value is clamped to zero instead of allowing uint underflow.
+    /// </summary>
+    public void SubtractLoops(uint count)
+    {
+        LoopCountLeft = count >= LoopCountLeft
+            ? 0
+            : LoopCountLeft - count;
+    }
     
     /// <summary>
     /// Clears the Music property when the currently assigned song
@@ -323,6 +328,10 @@ public class MusicLayer
             return;
         }
 
+        _internalCurrentTime = Raylib.GetMusicTimePlayed(Music.MusicValue);
+
+        _internalMusicLength = Raylib.GetMusicTimeLength(Music.MusicValue);
+        
         Raylib.PlayMusicStream(Music.MusicValue);
 
         IsPlaying = true;
@@ -370,6 +379,8 @@ public class MusicLayer
             return;
         }
 
+        
+        
         Raylib.PauseMusicStream(Music.MusicValue);
 
         IsPaused = true;
@@ -395,6 +406,8 @@ public class MusicLayer
         }
 
         Raylib.ResumeMusicStream(Music.MusicValue);
+        
+        _internalCurrentTime = this.GetMusicTimePlayed();
 
         IsPaused = false;
 
@@ -409,30 +422,39 @@ public class MusicLayer
     /// Raylib music streams must be updated every frame to continue
     /// feeding audio data to the playback device.
     /// </summary>
-    public void Update()
+    /// <param name="deltaTime"></param>
+    public void Update(double deltaTime)
     {
-        if (!IsPlaying || IsPaused)
+        if (!IsPlaying || Music == null || !Music.IsValid)
             return;
-
-        if (Music == null || !Music.IsValid)
-        {
-            IsPlaying = false;
-            IsPaused = false;
-            return;
-        }
 
         Raylib.UpdateMusicStream(Music.MusicValue);
 
-        // Raylib's music stream can tell us whether playback has
-        // reached the end when looping is disabled.
-        if (!Music.Looping && !Raylib.IsMusicStreamPlaying(Music.MusicValue))
+        if (IsPlaying)
         {
-            IsPlaying = false;
-            IsPaused = false;
-
-            if (ClearLayerAfterSongEnds)
-                Music = null;
+            _internalCurrentTime += deltaTime;
         }
+        
+        if (_internalCurrentTime < _internalMusicLength)
+            return;
+        
+        if (LoopCountLeft > 0)
+        {
+            SubtractLoops(1);
+
+            _internalCurrentTime = 0.0;
+            
+            Raylib.SeekMusicStream(
+                Music.MusicValue,
+                0.0f);
+
+            Raylib.PlayMusicStream(
+                Music.MusicValue);
+
+            return;
+        }
+
+        StopLayer();
     }
     /// <summary>
     /// Sets the playback volume for this layer.
@@ -455,7 +477,7 @@ public class MusicLayer
     /// </summary>
     public void SetLoopCount(uint count)
     {
-        LoopCount = count;
+        LoopCountLeft = count;
 
         if (Music == null || !Music.IsValid)
             return;

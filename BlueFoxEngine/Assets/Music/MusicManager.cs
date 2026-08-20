@@ -72,7 +72,14 @@ public class MusicPlayer
     public int AddLayer(MusicLayer musicLayer)
     {
         if (musicLayer.LayerIndex != -1)
+        {
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning,
+                "Unable to add music layer: no free layer slots.");
             return -1;
+        }
+            
         int idx = FindAvailableLayer();
         if(idx != -1)
         {
@@ -84,8 +91,11 @@ public class MusicPlayer
     
     public bool RemoveLayer(int idx)
     {
-        if (idx > 0 && idx < CurrentEngineConfig._EngineConfig.Audio.MusicLayerCount)
+        if (idx >= 0 && idx < CurrentEngineConfig._EngineConfig.Audio.MusicLayerCount)
+        {
+            this.Layers[idx].SetLayerIndex(-1);
             this.Layers[idx] = null;
+        }
         else
             return false;
         return true;
@@ -122,6 +132,16 @@ public class MusicPlayer
             return false;
         }
 
+        if (LayerIndex >= CurrentEngineConfig._EngineConfig.Audio.MusicLayerCount)
+        {
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning,
+                $"Invalid music layer index: {LayerIndex}");
+            
+            return false;
+        }
+        
         MusicLayer? availableLayer = this.Layers[LayerIndex];
 
         if (availableLayer == null)
@@ -198,12 +218,12 @@ public class MusicPlayer
     /// This should be called once per frame from the engine's
     /// update loop.
     /// </summary>
-    public void Update()
+    public void Update(double deltaTime)
     {
         foreach (MusicLayer layer in Layers)
         {
             if(layer != null)
-                layer.Update();
+                layer.Update(deltaTime);
         }
     }
 

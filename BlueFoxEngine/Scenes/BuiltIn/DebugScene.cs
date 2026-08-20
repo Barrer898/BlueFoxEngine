@@ -17,7 +17,7 @@ public sealed class DebugScene : Scene
     public override void Load()
     {
         _time = 0;
-        testSound = (Sound)AssetLoader.LoadSoundResource("Sound/blipClick.wav");
+        testSound = AssetLoader.LoadSoundResource("Sound/blipClick.wav");
         testSong = AssetLoader.LoadMusicResource("Music/loveshy - Like That.ogg");
         musicPlayer = new MusicPlayer();
     }
@@ -48,13 +48,13 @@ public sealed class DebugScene : Scene
             //_logger.Output(Logger.OutputType.Info, $"{testSound.ReferenceCount}", Logger.OutputLevel.Debug);
             if (!testAudioLoader)
             {
-                Sound testSound2 = (Sound)AssetLoader.LoadSoundResource("Sound/blipClick.wav");
+                Sound testSound2 = AssetLoader.LoadSoundResource("Sound/blipClick.wav");
                 AssetLoader.ClearSoundCache();
                 testAudioLoader = true;
                 musicPlayer.AddLayer(PrimaryMusicLayer);
-                musicPlayer.PlayMusic(testSong, (uint)PrimaryMusicLayer.LayerIndex);
+                musicPlayer.PlayMusic(testSong, (uint)PrimaryMusicLayer.LayerIndex, 0.75f, 2);
             }
-            _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, $"loveshy - Like That: {Raylib.GetMusicTimePlayed(testSong.MusicValue)}");
+            _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, $"loveshy - Like That: {PrimaryMusicLayer.GetMusicTimePlayed()}, LoopsLeft: {PrimaryMusicLayer.LoopCountLeft}");
              
         }
         
