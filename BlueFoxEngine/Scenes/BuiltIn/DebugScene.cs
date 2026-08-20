@@ -10,16 +10,29 @@ public sealed class DebugScene : Scene
     private Sound testSound;
     private Logger _logger = new("LoadingScene");
     private bool testAudioLoader = false;
-    private MusicAsset testSong;
-    private MusicLayer PrimaryMusicLayer = new MusicLayer("PrimaryMusicLayer");
+    private SequencedMusicAsset testSong;
+    private MusicLayer PrimaryMusicLayer = new MusicLayer("PrimaryMusicLayer", true);
     private MusicPlayer musicPlayer;
     
     public override void Load()
     {
         _time = 0;
         testSound = AssetLoader.LoadSoundResource("Sound/blipClick.wav");
-        testSong = AssetLoader.LoadMusicResource("Music/loveshy - Like That.ogg");
+        MusicAsset temp = AssetLoader.LoadMusicResource("Music/Razormind.ogg");
+        List<MusicSequence> list = new List<MusicSequence>();
+        
+        
+        list.Add(new MusicSequence(0f, 102.52f, () => false));
+        list.Add(new MusicSequence(102.52f, 103.44f, () => true));
+        
+        
+        
+        testSong = new SequencedMusicAsset(list, temp);
+        
+        
         musicPlayer = new MusicPlayer();
+        
+        
     }
 
     public override void Unload()
@@ -52,9 +65,11 @@ public sealed class DebugScene : Scene
                 AssetLoader.ClearSoundCache();
                 testAudioLoader = true;
                 musicPlayer.AddLayer(PrimaryMusicLayer);
+                
+                
                 musicPlayer.PlayMusic(testSong, (uint)PrimaryMusicLayer.LayerIndex, 0.75f, 2);
             }
-            _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, $"loveshy - Like That: {PrimaryMusicLayer.GetMusicTimePlayed()}, LoopsLeft: {PrimaryMusicLayer.LoopCountLeft}");
+            _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, $"Razormind: {PrimaryMusicLayer.GetMusicTimePlayed()}, LoopsLeft: {PrimaryMusicLayer.LoopCountLeft}");
              
         }
         

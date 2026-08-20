@@ -134,7 +134,7 @@ public class MusicAsset
 /// </summary>
 public class MusicLayer
 {
-    
+
     private readonly Logger _logger = new("MusicLayer");
 
     /// <summary>
@@ -157,6 +157,9 @@ public class MusicLayer
     /// </summary>
     public bool IsPlaying { get; private set; }
 
+    public bool IsSequenced { get; init; }
+    
+
     /// <summary>
     /// Gets whether this layer is currently paused.
     /// </summary>
@@ -167,10 +170,44 @@ public class MusicLayer
     /// </summary>
     public MusicAsset? Music { get; private set; }
 
+    public SequencedMusicAsset? SequencedMusic { get; private set; }
+
     public int LayerIndex { get; private set; } = -1;
 
     private double _internalCurrentTime;
     private double _internalMusicLength;
+
+    public void SetSequencedMusic(SequencedMusicAsset sequencedMusicAsset, bool force = false)
+    {
+        if (sequencedMusicAsset == null)
+        {
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning, "Given MusicAsset is null!");
+
+            return;
+        }
+
+        if (!sequencedMusicAsset.MusicAsset.IsValid)
+        {
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning, "Given MusicAsset is not valid!");
+
+            return;
+        }
+
+        if (Uninterruptible || !force)
+        {
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning, "Cannot Update this layer, is set as Uninterruptible?");
+
+            return;
+        }
+        
+        SequencedMusic = sequencedMusicAsset;
+    }
     
     public void SetLayerIndex(int idx)
     {
@@ -260,10 +297,37 @@ public class MusicLayer
         LayerName = layerName;
         Uninterruptible = uninterruptible;
         ClearLayerAfterSongEnds = clearLayerAfterSongEnds;
-
+        IsSequenced = false;
+        SequencedMusic = null;
+        
         SetMusic(music, true);
-    }
-
+    }        
+    public MusicLayer(
+        string layerName,
+        SequencedMusicAsset sequencedMusicAsset,
+        bool uninterruptible = false,
+        bool clearLayerAfterSongEnds = false)
+    {
+        LayerName = layerName;
+        Uninterruptible = uninterruptible;
+        ClearLayerAfterSongEnds = clearLayerAfterSongEnds;
+        IsSequenced = true;
+        SequencedMusic = sequencedMusicAsset;
+        
+        
+        SetMusic(sequencedMusicAsset.MusicAsset, true);
+    }      
+    public MusicLayer(
+        string layerName,
+        bool isSequenced = false,
+        bool uninterruptible = false,
+        bool clearLayerAfterSongEnds = false)
+    {
+        LayerName = layerName;
+        Uninterruptible = uninterruptible;
+        ClearLayerAfterSongEnds = clearLayerAfterSongEnds;
+        IsSequenced = true;
+    }      
     /// <summary>
     /// Assigns a music asset to this layer.
     /// 
@@ -277,6 +341,15 @@ public class MusicLayer
     /// </param>
     public void SetMusic(MusicAsset? music, bool force = false)
     {
+        if (this.IsSequenced)
+        {
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning, $"Cannot assign Music to a SequencedMusic Layer.");
+
+            return;
+        }
+        
         if (music == null)
         {
             _logger.Output(
@@ -309,6 +382,52 @@ public class MusicLayer
             StopLayer();
 
         Music = music;
+        IsPaused = false;
+    }
+    
+    public void SetMusic(SequencedMusicAsset? music, bool force = false)
+    {
+        if (!this.IsSequenced)
+        {
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning, $"Cannot assign SequencedMusic to a non-SequencedMusic Layer.");
+
+            return;
+        }
+        
+        if (music == null)
+        {
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning, $"Cannot assign null music to layer '{LayerName}'.");
+
+            return;
+        }
+
+        if (!music.MusicAsset.IsValid)
+        {
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning, $"Cannot assign invalid music to layer '{LayerName}'.");
+
+            return;
+        }
+
+        if (Uninterruptible && IsPlaying && !force)
+        {
+            _logger.Output(
+                Logger.OutputType.Notice,
+                Logger.OutputLevel.Info, $"Ignoring SetMusic for '{LayerName}': layer is uninterruptible.");
+
+            return;
+        }
+
+        // Stop the previous stream before replacing it.
+        if (IsPlaying)
+            StopLayer();
+
+        Music = music.MusicAsset;
         IsPaused = false;
     }
 
@@ -435,13 +554,12 @@ public class MusicLayer
             _internalCurrentTime += deltaTime;
         }
         
-        if (_internalCurrentTime < _internalMusicLength)
+        if (_internalCurrentTime < _internalMusicLength )
             return;
         
         if (LoopCountLeft > 0)
         {
             SubtractLoops(1);
-
             _internalCurrentTime = 0.0;
             
             Raylib.SeekMusicStream(
