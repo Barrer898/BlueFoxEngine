@@ -197,7 +197,7 @@ public class MusicLayer
             return;
         }
 
-        if (Uninterruptible || !force)
+        if (Uninterruptible && IsPlaying && !force)
         {
             _logger.Output(
                 Logger.OutputType.Warning,
@@ -326,7 +326,7 @@ public class MusicLayer
         LayerName = layerName;
         Uninterruptible = uninterruptible;
         ClearLayerAfterSongEnds = clearLayerAfterSongEnds;
-        IsSequenced = true;
+        IsSequenced = isSequenced;
     }      
     /// <summary>
     /// Assigns a music asset to this layer.

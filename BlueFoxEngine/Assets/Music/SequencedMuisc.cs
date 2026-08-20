@@ -38,7 +38,6 @@ public class SequencedMusicAsset
         {
             if(MusicSequences[CurrentSequenceIndex].LoopCondition())
             {
-                Console.WriteLine("YES");
                 Raylib.SeekMusicStream(MusicAsset.MusicValue, MusicSequences[CurrentSequenceIndex].SequenceBeginTimestamp ); // I will most probably move this to a separate function -B.
             }
             else

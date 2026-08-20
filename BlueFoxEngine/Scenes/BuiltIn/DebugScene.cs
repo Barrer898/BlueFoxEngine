@@ -21,7 +21,7 @@ public sealed class DebugScene : Scene
         MusicAsset temp = AssetLoader.LoadMusicResource("Music/Razormind.ogg");
         List<MusicSequence> list = new List<MusicSequence>();
         
-        
+        // just an example
         list.Add(new MusicSequence(0f, 102.52f, () => false));
         list.Add(new MusicSequence(102.52f, 103.44f, () => true));
         

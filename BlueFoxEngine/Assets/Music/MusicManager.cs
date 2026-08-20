@@ -221,7 +221,7 @@ public class MusicPlayer
 
         availableLayer.SetVolume(volume * Volume);
         availableLayer.SetLoopCount(loopCount);
-        availableLayer.SetSequencedMusic(music, true);
+        availableLayer.SetSequencedMusic(music);
         availableLayer.SetMusic(music);
         availableLayer.PlayLayer();
 
@@ -304,70 +304,6 @@ public class MusicPlayer
         }
 
         return -1;
-    }
-    
-    //                  --- SequencedMusic -- 
-    
-    public bool PlaySequencedMusic(
-        SequencedMusicAsset music,
-        uint LayerIndex,
-        float volume = 1.0f,
-        uint loopCount = 0)
-    {
-        if (music == null || !music.MusicAsset.IsValid)
-        {
-            _logger.Output(
-                Logger.OutputType.Warning,
-                Logger.OutputLevel.Warning, "Cannot play invalid music asset.");
-
-            return false;
-        }
-
-        if (LayerIndex >= CurrentEngineConfig._EngineConfig.Audio.MusicLayerCount)
-        {
-            _logger.Output(
-                Logger.OutputType.Warning,
-                Logger.OutputLevel.Warning,
-                $"Invalid music layer index: {LayerIndex}");
-            
-            return false;
-        }
-        
-        MusicLayer? availableLayer = this.Layers[LayerIndex];
-
-        if(!availableLayer.IsSequenced)
-        {
-            _logger.Output(
-                Logger.OutputType.Warning,
-                Logger.OutputLevel.Warning, "Given LayerIndex isn't a Sequenced layer.");
-
-            return false;
-        }
-            
-            
-        if (availableLayer == null)
-        {
-            _logger.Output(
-                Logger.OutputType.Warning,
-                Logger.OutputLevel.Warning, "No available music layers.");
-
-            return false;
-        }
-
-        volume = Math.Clamp(volume, 0.0f, 1.0f);
-        
-        music.MusicAsset.SetLooping(loopCount > 0);
-
-        availableLayer.SetVolume(volume * Volume);
-        availableLayer.SetLoopCount(loopCount);
-        availableLayer.SetMusic(music.MusicAsset);
-        availableLayer.PlayLayer();
-
-        _logger.Output(
-            Logger.OutputType.Info,
-            Logger.OutputLevel.Debug, $"Playing music on sequenced layer '{availableLayer.LayerName}'.");
-
-        return true;
     }
     
 }
