@@ -90,8 +90,7 @@ public class MusicAsset
         music.Looping = looping;
         _Music = music;
     }
-    public delegate void UpdateInternalLayerCounters(); 
-    public event UpdateInternalLayerCounters UpdateCounters;
+    public event Action? UpdateCounters;
     
     public void RaiseUpdateInternalLayerCountersEvent() {
         UpdateCounters?.Invoke();
@@ -125,6 +124,13 @@ public class MusicAsset
         }
 
         _Music = music._Music;
+    }
+    
+    public void SeekMusicStream(float position)
+    {
+        if (this._Music == null) return;
+        Raylib.SeekMusicStream(this._Music.Value, position);
+        RaiseUpdateInternalLayerCountersEvent();
     }
 }
 
