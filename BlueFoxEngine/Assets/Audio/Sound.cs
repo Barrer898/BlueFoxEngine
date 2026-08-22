@@ -1,7 +1,7 @@
 using Raylib_cs;
 namespace BlueFoxEngine.Assets;
 
-
+/*  CachedSound was an early instance of caching, for now ill leave it commented just in case. but expect this to be removed at any moment. including the entire file
 public class CachedSound
 {
     public Sound Sound;
@@ -23,10 +23,10 @@ public class CachedSound
         this.Sound = sound;
         this.ReferenceCount = referenceCount;
     }
-}
+}*/
 
 public static class InvalidAudio
 {
     public static readonly Sound InvalidSound = new Sound();
-    public static readonly CachedSound InvalidCachedSound = new CachedSound(InvalidSound, 0);
+    //public static readonly CachedSound InvalidCachedSound = new CachedSound(InvalidSound, 0);
 }

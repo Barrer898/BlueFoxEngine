@@ -30,7 +30,7 @@ public class MusicPlayer
     ///
     /// The number of layers is configured through EngineConfig.
     /// </summary>
-    public MusicLayer[] Layers { get; private set;  }
+    public MusicLayer[]? Layers { get; private set;  }
 
     /// <summary>
     /// Gets or sets the global music volume.
@@ -76,7 +76,7 @@ public class MusicPlayer
             _logger.Output(
                 Logger.OutputType.Warning,
                 Logger.OutputLevel.Warning,
-                "Unable to add music layer: no free layer slots.");
+                "Unable to add music layer: given layer is already assigned.");
             return -1;
         }
             
@@ -238,7 +238,7 @@ public class MusicPlayer
     public void StopMusic(uint LayerIndex)
     {
 
-        if (LayerIndex > CurrentEngineConfig._EngineConfig.Audio.MusicLayerCount)
+        if (LayerIndex >= CurrentEngineConfig._EngineConfig.Audio.MusicLayerCount)
         {
             return;
         }

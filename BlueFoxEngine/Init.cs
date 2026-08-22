@@ -22,6 +22,13 @@ static class Init
         _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Info, "Preparing Engine...");
         _EngineCore = BlueFoxEngine.EngineCore.CreateInstance();
         
+        if (_EngineCore == null)
+        {
+            EngineInitializationException e = new EngineInitializationException("EngineCore.CreateInstance() Returned null.");
+            _logger.Output(Logger.OutputType.CriticalError, Logger.OutputLevel.Critical, "Failed to Initialize the Core engine.", e);
+            throw e;
+        }
+        
         _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, "Reading EngineConfig...");
         _EngineCore.LoadEngineConfigurationFromFile();
         

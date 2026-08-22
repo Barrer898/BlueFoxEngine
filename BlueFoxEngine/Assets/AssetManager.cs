@@ -21,7 +21,6 @@ public static class AssetLoader
     private static readonly AssetCache<MusicAsset> MusicCache = new();
     private static readonly AssetCache<Texture2D> _texturesCache = new();
     private static readonly AssetCache<Font> _fontsCache = new();
-    private static bool SoundCacheClearingInProgress = false;
 
     #region Cache
     

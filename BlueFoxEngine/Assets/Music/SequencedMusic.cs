@@ -32,13 +32,15 @@ public class SequencedMusicAsset
 
     public void Update()
     {
-       
-        if (MusicSequences[CurrentSequenceIndex].SequenceEndTimestamp <=
+        if (CurrentSequenceIndex == -1) return; // nothing to update...
+        MusicSequence currentSequence = MusicSequences[CurrentSequenceIndex];
+        if (currentSequence.SequenceEndTimestamp <=
             Raylib.GetMusicTimePlayed(MusicAsset.MusicValue))
         {
-            if(MusicSequences[CurrentSequenceIndex].LoopCondition())
+            if(currentSequence.LoopCondition())
             {
-                Raylib.SeekMusicStream(MusicAsset.MusicValue, MusicSequences[CurrentSequenceIndex].SequenceBeginTimestamp ); // I will most probably move this to a separate function -B.
+                Raylib.SeekMusicStream(MusicAsset.MusicValue, currentSequence.SequenceBeginTimestamp ); // I will most probably move this to a separate function -B.
+                MusicAsset._internalCurrentTime = currentSequence.SequenceBeginTimestamp;
             }
             else
             {

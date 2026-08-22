@@ -50,22 +50,22 @@ public class Logger
     private ConsoleColor ErrorColor { get; } = ConsoleColor.DarkRed;
     private ConsoleColor BracketsErrorColor { get; } = ConsoleColor.Red;
 
-    internal OutputLevel CurrentOutputLevel { get; set;  }
+    internal static OutputLevel CurrentOutputLevel { get; set;  }
 
     public void UpdateOutputLevel()
     {
         OutputLevel newOutputLevel = OutputLevel.Trace;
         
         if (CurrentEngineConfig._EngineConfig != null && OutputLevel.TryParse(CurrentEngineConfig._EngineConfig.Logging.Level, out newOutputLevel))
-            this.CurrentOutputLevel = newOutputLevel;
+            CurrentOutputLevel = newOutputLevel;
         else
-            this.CurrentOutputLevel = newOutputLevel;
+            CurrentOutputLevel = newOutputLevel;
     }
     
     public void Output(OutputType outputType, ConsoleColor? primaryColorOverride, string message,
         ConsoleColor? secondaryColorOverride, OutputLevel outputLevel, Exception? exception = null)
     {
-        if (outputLevel <= this.CurrentOutputLevel)
+        if (outputLevel <= CurrentOutputLevel)
         {
             ConsoleColor originalColor = Console.ForegroundColor;
             if (secondaryColorOverride == null)

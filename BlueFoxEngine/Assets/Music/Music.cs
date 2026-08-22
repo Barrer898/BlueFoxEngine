@@ -35,6 +35,8 @@ public class MusicAsset
     /// </summary>
     public bool Looping => _Music?.Looping ?? false;
     
+    internal double _internalCurrentTime;
+    internal double _internalMusicLength;
 
     /// <summary>
     /// Gets whether the underlying Raylib music stream is valid.
@@ -119,7 +121,6 @@ public class MusicAsset
 
         _Music = music._Music;
     }
-    
 }
 
 
@@ -173,9 +174,11 @@ public class MusicLayer
     public SequencedMusicAsset? SequencedMusic { get; private set; }
 
     public int LayerIndex { get; private set; } = -1;
-
-    private double _internalCurrentTime;
-    private double _internalMusicLength;
+    
+    public void SetLayerIndex(int index)
+    {
+        LayerIndex = index;
+    }
 
     public void SetSequencedMusic(SequencedMusicAsset sequencedMusicAsset, bool force = false)
     {
@@ -209,11 +212,6 @@ public class MusicLayer
         SequencedMusic = sequencedMusicAsset;
     }
     
-    public void SetLayerIndex(int idx)
-    {
-        LayerIndex = idx;
-    }
-
     public float GetMusicTimePlayed()
     {
         if (this.Music != null)
@@ -228,6 +226,13 @@ public class MusicLayer
             return Raylib.GetMusicTimeLength(this.Music.MusicValue);
         else
             return 0f;
+    }
+    
+    public void SeekMusicStream(float position)
+    {
+        if (this.Music == null) return;
+        Raylib.SeekMusicStream(this.Music.MusicValue, position);
+        this.Music._internalCurrentTime = position;
     }
     
     /// <summary>
@@ -447,9 +452,9 @@ public class MusicLayer
             return;
         }
 
-        _internalCurrentTime = Raylib.GetMusicTimePlayed(Music.MusicValue);
+        this.Music._internalCurrentTime = Raylib.GetMusicTimePlayed(Music.MusicValue);
 
-        _internalMusicLength = Raylib.GetMusicTimeLength(Music.MusicValue);
+        this.Music._internalMusicLength = Raylib.GetMusicTimeLength(Music.MusicValue);
         
         Raylib.PlayMusicStream(Music.MusicValue);
 
@@ -526,7 +531,7 @@ public class MusicLayer
 
         Raylib.ResumeMusicStream(Music.MusicValue);
         
-        _internalCurrentTime = this.GetMusicTimePlayed();
+        this.Music._internalCurrentTime = this.GetMusicTimePlayed();
 
         IsPaused = false;
 
@@ -551,16 +556,16 @@ public class MusicLayer
 
         if (IsPlaying)
         {
-            _internalCurrentTime += deltaTime;
+            this.Music._internalCurrentTime += deltaTime;
         }
         
-        if (_internalCurrentTime < _internalMusicLength )
+        if (this.Music._internalCurrentTime < this.Music._internalMusicLength )
             return;
         
         if (LoopCountLeft > 0)
         {
             SubtractLoops(1);
-            _internalCurrentTime = 0.0;
+            this.Music._internalCurrentTime = 0.0;
             
             Raylib.SeekMusicStream(
                 Music.MusicValue,
