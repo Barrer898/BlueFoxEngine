@@ -40,7 +40,7 @@ public class SequencedMusicAsset
             if(currentSequence.LoopCondition())
             {
                 Raylib.SeekMusicStream(MusicAsset.MusicValue, currentSequence.SequenceBeginTimestamp ); // I will most probably move this to a separate function -B.
-                MusicAsset._internalCurrentTime = currentSequence.SequenceBeginTimestamp;
+                MusicAsset.RaiseUpdateInternalLayerCountersEvent();
             }
             else
             {

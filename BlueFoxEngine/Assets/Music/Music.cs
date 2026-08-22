@@ -1,4 +1,5 @@
 using BlueFoxEngine.Logging;
+using BlueFoxEngine.Assets;
 using Raylib_cs;
 
 namespace BlueFoxEngine.Assets;
@@ -35,9 +36,6 @@ public class MusicAsset
     /// </summary>
     public bool Looping => _Music?.Looping ?? false;
     
-    internal double _internalCurrentTime;
-    internal double _internalMusicLength;
-
     /// <summary>
     /// Gets whether the underlying Raylib music stream is valid.
     /// </summary>
@@ -92,7 +90,14 @@ public class MusicAsset
         music.Looping = looping;
         _Music = music;
     }
+    public delegate void UpdateInternalLayerCounters(); 
+    public event UpdateInternalLayerCounters UpdateCounters;
+    
+    public void RaiseUpdateInternalLayerCountersEvent() {
+        UpdateCounters?.Invoke();
+    }
 
+    
     /// <summary>
     /// Replaces the underlying music reference with another MusicAsset.
     /// 
@@ -138,6 +143,14 @@ public class MusicLayer
 
     private readonly Logger _logger = new("MusicLayer");
 
+    public void OnInternalCounterUpdateRequestReceived() {
+        if (Music != null && Music.IsValid)
+        {
+            _internalCurrentTime = Raylib.GetMusicTimePlayed(this.Music.MusicValue);
+            _internalMusicLength = Raylib.GetMusicTimeLength(this.Music.MusicValue);
+        }
+    }
+    
     /// <summary>
     /// Gets the name of this layer.
     /// 
@@ -160,6 +173,9 @@ public class MusicLayer
 
     public bool IsSequenced { get; init; }
     
+    private double _internalCurrentTime;
+    private double _internalMusicLength;
+
 
     /// <summary>
     /// Gets whether this layer is currently paused.
@@ -212,6 +228,7 @@ public class MusicLayer
         SequencedMusic = sequencedMusicAsset;
     }
     
+
     public float GetMusicTimePlayed()
     {
         if (this.Music != null)
@@ -232,7 +249,7 @@ public class MusicLayer
     {
         if (this.Music == null) return;
         Raylib.SeekMusicStream(this.Music.MusicValue, position);
-        this.Music._internalCurrentTime = position;
+        _internalCurrentTime = position;
     }
     
     /// <summary>
@@ -290,6 +307,8 @@ public class MusicLayer
         LayerName = layerName;
     }
 
+
+    
     /// <summary>
     /// Creates a music layer with an assigned music asset.
     /// </summary>
@@ -304,7 +323,8 @@ public class MusicLayer
         ClearLayerAfterSongEnds = clearLayerAfterSongEnds;
         IsSequenced = false;
         SequencedMusic = null;
-        
+
+        music.UpdateCounters += this.OnInternalCounterUpdateRequestReceived;
         SetMusic(music, true);
     }        
     public MusicLayer(
@@ -318,7 +338,7 @@ public class MusicLayer
         ClearLayerAfterSongEnds = clearLayerAfterSongEnds;
         IsSequenced = true;
         SequencedMusic = sequencedMusicAsset;
-        
+        sequencedMusicAsset.MusicAsset.UpdateCounters += this.OnInternalCounterUpdateRequestReceived;
         
         SetMusic(sequencedMusicAsset.MusicAsset, true);
     }      
@@ -385,8 +405,11 @@ public class MusicLayer
         // Stop the previous stream before replacing it.
         if (IsPlaying)
             StopLayer();
-
+        
+        if(Music != null)
+            Music.UpdateCounters -= this.OnInternalCounterUpdateRequestReceived;
         Music = music;
+        Music.UpdateCounters += this.OnInternalCounterUpdateRequestReceived;
         IsPaused = false;
     }
     
@@ -432,7 +455,10 @@ public class MusicLayer
         if (IsPlaying)
             StopLayer();
 
+        if(Music != null)
+            Music.UpdateCounters -= this.OnInternalCounterUpdateRequestReceived;
         Music = music.MusicAsset;
+        Music.UpdateCounters += this.OnInternalCounterUpdateRequestReceived;
         IsPaused = false;
     }
 
@@ -452,9 +478,9 @@ public class MusicLayer
             return;
         }
 
-        this.Music._internalCurrentTime = Raylib.GetMusicTimePlayed(Music.MusicValue);
+        _internalCurrentTime = Raylib.GetMusicTimePlayed(Music.MusicValue);
 
-        this.Music._internalMusicLength = Raylib.GetMusicTimeLength(Music.MusicValue);
+        _internalMusicLength = Raylib.GetMusicTimeLength(Music.MusicValue);
         
         Raylib.PlayMusicStream(Music.MusicValue);
 
@@ -531,7 +557,7 @@ public class MusicLayer
 
         Raylib.ResumeMusicStream(Music.MusicValue);
         
-        this.Music._internalCurrentTime = this.GetMusicTimePlayed();
+        _internalCurrentTime = this.GetMusicTimePlayed();
 
         IsPaused = false;
 
@@ -556,16 +582,16 @@ public class MusicLayer
 
         if (IsPlaying)
         {
-            this.Music._internalCurrentTime += deltaTime;
+            _internalCurrentTime += deltaTime;
         }
         
-        if (this.Music._internalCurrentTime < this.Music._internalMusicLength )
+        if (_internalCurrentTime < _internalMusicLength )
             return;
         
         if (LoopCountLeft > 0)
         {
             SubtractLoops(1);
-            this.Music._internalCurrentTime = 0.0;
+            _internalCurrentTime = 0.0;
             
             Raylib.SeekMusicStream(
                 Music.MusicValue,
