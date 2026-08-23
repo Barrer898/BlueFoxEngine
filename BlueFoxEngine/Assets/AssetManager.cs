@@ -1,6 +1,6 @@
 using BlueFoxEngine.Logging;
 using BlueFoxEngine.Configuration;
-using BlueFoxEngine.Assets;
+using BlueFoxEngine.Assets.Textures;
 using Raylib_cs;
 using System.IO;
 
@@ -16,10 +16,10 @@ public static class AssetLoader
     internal const uint BadAssetNukeMargin = 10;
     internal static uint CurrentBadAssetCount = 0;
 
-    internal const uint MaxSoundCacheAmount = 250;
+    internal const uint MaxSoundCacheAmount = 250; // TODO: add this to config later or remove this limit
     private static readonly AssetCache<Sound> SoundCache = new();
     private static readonly AssetCache<MusicAsset> MusicCache = new();
-    private static readonly AssetCache<Texture2D> _texturesCache = new();
+    private static readonly AssetCache<TextureAsset> TextureCache = new();
     private static readonly AssetCache<Font> _fontsCache = new();
 
     #region Cache
@@ -379,7 +379,7 @@ public static class AssetLoader
 
         _logger.Output(
             Logger.OutputType.Info,
-            Logger.OutputLevel.Info, $"Current MusicCache.Count: {MusicCache.Count}");
+            Logger.OutputLevel.Debug, $"Current MusicCache.Count: {MusicCache.Count}");
     }
 
     /// <summary>
@@ -492,5 +492,158 @@ public static class AssetLoader
     }
 
     #endregion
+    #region Texture
     
+    public static CachedAsset<TextureAsset> LoadTexture(string path)
+    {
+        return Load(TextureCache,
+            path,
+            textureLoader => new TextureAsset(Raylib.LoadTexture(textureLoader))
+            ,validator => validator.IsValid);
+    }
+
+    public static bool TryLoadTexture(
+        string textureRelativePath,
+        out CachedAsset<TextureAsset>? texture)
+    {
+        try 
+        {
+            textureRelativePath = textureRelativePath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            
+            if(TextureCache.TryGet(textureRelativePath, out var cachedTextureAsset) && cachedTextureAsset.IsValid) 
+            { 
+                _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, "Found Cache!"); 
+                cachedTextureAsset.IncreaseReferenceCount(); 
+                texture = cachedTextureAsset; 
+                return true;  
+            } 
+            string FullLoadPath = System.IO.Path.Combine([BaseDirectory, 
+                    CurrentEngineConfig._EngineConfig.Assets.Directory, 
+                    "Textures",
+                    textureRelativePath]);
+
+            CachedAsset<TextureAsset> newRequestedTexture = LoadTexture(FullLoadPath);
+            
+            if(newRequestedTexture.IsValid) 
+            { 
+                AddTextureToCache(textureRelativePath, newRequestedTexture); 
+                texture = newRequestedTexture; 
+                return true;
+            }
+            else 
+            { 
+                texture = null; // Invalid!
+                _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, $"Failed to load sound {textureRelativePath}"); 
+                return false;
+            }
+
+            
+        } catch(Exception e) 
+        {
+            _logger.Output(Logger.OutputType.ExceptionThrownError, Logger.OutputLevel.Error, "Uh oh! Failed to load texture...", e);
+            texture = null; // Invalid!
+            return false;
+        }
+    }
+    public static TextureAsset LoadTextureResource(string textureRelativePath)
+    {
+        if (TryLoadTexture(textureRelativePath, out var requestedTexture))
+        {
+            if(requestedTexture != null)  // why does this give me a compiler warning? annoying, but will try to clean out all warnings in the future. -B
+                return requestedTexture.Asset;
+            else
+            {
+                _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, "Failed to load requested texture");
+                return new TextureAsset();
+            }
+        }
+        else
+        {
+            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, "Failed to load requested texture");
+            return new TextureAsset();
+        }
+    }
+    
+    public static bool UnloadTextureResource(string textureRelativePath)
+    {
+        TextureAsset? textureToUnload = FindTextureInCache(textureRelativePath);
+        if(textureToUnload != null && Raylib.IsTextureValid(textureToUnload.Texture.Value) && SoundCache.TryGet(textureRelativePath, out var cachedSoundAsset))
+        {
+            cachedSoundAsset.DecreaseReferenceCount();
+            if(cachedSoundAsset.ReferenceCount == 0)
+            {
+                Raylib.UnloadTexture(textureToUnload.Texture.Value);
+                SoundCache.Remove(textureRelativePath); // We know that AudioRelativePath is valid as FindSoundInCache() didn't return null
+            }
+            return true;
+        }
+        else
+        {
+            _logger.Output(Logger.OutputType.ExceptionThrownWarning,Logger.OutputLevel.Warning, "Failed to unload sound resource", new KeyNotFoundException($"The sound asset with relative path '{textureRelativePath}' was not found in the cache.")); 
+            return false;
+        }
+    }
+    
+    internal static TextureAsset? FindTextureInCache(
+        string textureRelativePath)
+    {
+        textureRelativePath = textureRelativePath.TrimStart(
+            Path.DirectorySeparatorChar,
+            Path.AltDirectorySeparatorChar);
+
+        if (TextureCache.TryGet(
+                textureRelativePath,
+                out var requestedTexture))
+        {
+            if (requestedTexture.IsValid)
+                return requestedTexture.Asset;
+
+            _logger.Output(
+                Logger.OutputType.Error,
+                Logger.OutputLevel.Error, $"Cached texture is not valid?!: {textureRelativePath}");
+
+            // Remove the invalid cache entry.
+            MusicCache.Remove(textureRelativePath);
+
+            return null;
+        }
+
+        return null;
+    }
+    
+    internal static void AddTextureToCache(string textureRelativePath, CachedAsset<TextureAsset> texture)
+    {
+        if (texture.IsValid)
+            TextureCache.Add(textureRelativePath, texture);
+
+        _logger.Output(
+            Logger.OutputType.Info,
+            Logger.OutputLevel.Debug, $"Current TextureCache.Count: {TextureCache.Count}");
+            
+    }
+    
+    public static void ClearTextureCache()
+    {
+        if (TextureCache.Count == 0)
+            return;
+
+        foreach (var asset in TextureCache.PublicCache.Values)
+        {
+            if (!asset.IsValid)
+                continue;
+
+            if (asset.Asset.Texture == null) return;    
+            
+            Raylib.UnloadTexture(
+                asset.Asset.Texture.Value);
+        }
+
+        TextureCache.Clear();
+
+        _logger.Output(
+            Logger.OutputType.Info,
+            Logger.OutputLevel.Debug, "Cleared music cache.");
+    }
+  
+    #endregion
 }

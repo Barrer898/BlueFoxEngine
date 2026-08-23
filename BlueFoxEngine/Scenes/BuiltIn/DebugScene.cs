@@ -1,4 +1,5 @@
 using BlueFoxEngine.Assets;
+using BlueFoxEngine.Assets.Textures;
 using BlueFoxEngine.Helper;
 using BlueFoxEngine.Logging;
 using Raylib_cs;
@@ -13,6 +14,7 @@ public sealed class DebugScene : Scene
     private SequencedMusicAsset testSong;
     private MusicLayer PrimaryMusicLayer = new MusicLayer("PrimaryMusicLayer", true);
     private MusicPlayer musicPlayer;
+    private TextureAsset debugTexture;
     
     public override void Load()
     {
@@ -24,8 +26,8 @@ public sealed class DebugScene : Scene
         // just an example
         list.Add(new MusicSequence(0f, 102.52f, () => false));
         list.Add(new MusicSequence(102.52f, 103.44f, () => true));
-        
-        
+
+        debugTexture = AssetLoader.LoadTextureResource("debug.png");
         
         testSong = new SequencedMusicAsset(list, temp);
         
@@ -72,6 +74,8 @@ public sealed class DebugScene : Scene
             _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, $"Razormind: {PrimaryMusicLayer.GetMusicTimePlayed()}, LoopsLeft: {PrimaryMusicLayer.LoopCountLeft}");
              
         }
+        
+        Raylib.DrawTexture(debugTexture.Texture.Value,0,0,Color.White);
         
         Raylib.DrawText("Loading...", x, y, 24, color);
     }
