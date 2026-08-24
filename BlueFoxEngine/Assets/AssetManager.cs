@@ -131,7 +131,7 @@ public static class AssetLoader
         }
     }
 
-    public static bool UnloadSoundResource(string audioRelativePath)
+    public static bool ReleaseSoundResource(string audioRelativePath)
     {
         Sound soundToUnload = FindSoundInCache(audioRelativePath);
         if(Raylib.IsSoundValid(soundToUnload) && SoundCache.TryGet(audioRelativePath, out var cachedSoundAsset))
@@ -388,7 +388,7 @@ public static class AssetLoader
     /// The underlying Raylib music stream is only unloaded when the
     /// reference count reaches zero.
     /// </summary>
-    public static bool UnloadMusicResource(string musicRelativePath)
+    public static bool ReleaseMusicResource(string musicRelativePath)
     {
         musicRelativePath = musicRelativePath.TrimStart(
             Path.DirectorySeparatorChar,
@@ -564,13 +564,13 @@ public static class AssetLoader
         }
     }
     
-    public static bool UnloadTextureResource(string textureRelativePath)
+    public static bool ReleaseTextureResource(string textureRelativePath)
     {
         TextureAsset? textureToUnload = FindTextureInCache(textureRelativePath);
-        if(textureToUnload != null && Raylib.IsTextureValid(textureToUnload.Texture.Value) && SoundCache.TryGet(textureRelativePath, out var cachedSoundAsset))
+        if(textureToUnload != null && Raylib.IsTextureValid(textureToUnload.Texture.Value) && SoundCache.TryGet(textureRelativePath, out var cachedTextureAsset))
         {
-            cachedSoundAsset.DecreaseReferenceCount();
-            if(cachedSoundAsset.ReferenceCount == 0)
+            cachedTextureAsset.DecreaseReferenceCount();
+            if(cachedTextureAsset.ReferenceCount == 0)
             {
                 Raylib.UnloadTexture(textureToUnload.Texture.Value);
                 SoundCache.Remove(textureRelativePath); // We know that AudioRelativePath is valid as FindSoundInCache() didn't return null
@@ -579,7 +579,7 @@ public static class AssetLoader
         }
         else
         {
-            _logger.Output(Logger.OutputType.ExceptionThrownWarning,Logger.OutputLevel.Warning, "Failed to unload sound resource", new KeyNotFoundException($"The sound asset with relative path '{textureRelativePath}' was not found in the cache.")); 
+            _logger.Output(Logger.OutputType.ExceptionThrownWarning,Logger.OutputLevel.Warning, "Failed to unload Texture resource", new KeyNotFoundException($"The texture asset with relative path '{textureRelativePath}' was not found in the cache.")); 
             return false;
         }
     }
@@ -642,7 +642,7 @@ public static class AssetLoader
 
         _logger.Output(
             Logger.OutputType.Info,
-            Logger.OutputLevel.Debug, "Cleared music cache.");
+            Logger.OutputLevel.Debug, "Cleared texture cache.");
     }
   
     #endregion
