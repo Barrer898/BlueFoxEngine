@@ -573,7 +573,7 @@ public static class AssetLoader
             if(cachedTextureAsset.ReferenceCount == 0)
             {
                 Raylib.UnloadTexture(textureToUnload.Texture.Value);
-                SoundCache.Remove(textureRelativePath); // We know that AudioRelativePath is valid as FindSoundInCache() didn't return null
+                TextureCache.Remove(textureRelativePath);
             }
             return true;
         }

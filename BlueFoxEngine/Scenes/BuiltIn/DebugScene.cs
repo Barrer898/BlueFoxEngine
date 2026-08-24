@@ -35,7 +35,7 @@ public sealed class DebugScene : Scene
         testSong = new SequencedMusicAsset(list, temp);
 
         testSprite = new Sprite(debugTexture);
-        testSprite.GetObjectData().Position = new Vector2(640,360) ;
+        testSprite.ObjectTransform.Position = new Vector2(640,360) ;
         testSprite.SetOriginCenter();
         
         musicPlayer = new MusicPlayer();
@@ -50,6 +50,7 @@ public sealed class DebugScene : Scene
     public override void Update(double deltaTime)
     {
         _time += deltaTime;
+        testSprite.ObjectTransform.Rotation += 0.02f;
         //musicPlayer.Update();
     }
 

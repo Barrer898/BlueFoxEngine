@@ -8,11 +8,10 @@ public class Sprite
 {
     public TextureAsset Texture { get; private set; }
 
-    private Object2D ObjectData { get; set; } = new Object2D();
-
-    public Object2D GetObjectData()
+    public Object2D ObjectTransform { get; }
+    public Object2D GetObjectTransformData()
     {
-        return ObjectData;
+        return ObjectTransform;
     }
 
     public Color Tint { get; set; } = Color.White;
@@ -25,6 +24,7 @@ public class Sprite
 
     public Sprite(TextureAsset texture)
     {
+        this.ObjectTransform = new Object2D();
         this.Texture = texture;
         SourceRectangle =new(
             0,
@@ -37,7 +37,7 @@ public class Sprite
     public Sprite(TextureAsset texture, Object2D objectData)
     {
         this.Texture = texture;
-        this.ObjectData = ObjectData;
+        this.ObjectTransform = objectData;
         SourceRectangle =new(
             0,
             0,
@@ -49,7 +49,7 @@ public class Sprite
 
     public void SetOriginCenter()
     {
-        this.ObjectData.Origin = new Vector2(
+        this.ObjectTransform.Origin = new Vector2(
             SourceRectangle.Width / 2f,
             SourceRectangle.Height / 2f
         );
@@ -63,18 +63,18 @@ public class Sprite
         Rectangle source = SourceRectangle;
 
         Rectangle destination = new(
-            ObjectData.Position.X,
-            ObjectData.Position.Y,
-            Texture.Width * ObjectData.Scale.X,
-            Texture.Height * ObjectData.Scale.Y
+            ObjectTransform.Position.X,
+            ObjectTransform.Position.Y,
+            SourceRectangle.Width * ObjectTransform.Scale.X,
+            SourceRectangle.Height * ObjectTransform.Scale.Y
         );
 
         Raylib.DrawTexturePro(
             Texture.Texture!.Value,
             source,
             destination,
-            ObjectData.Origin,
-            ObjectData.Rotation,
+            ObjectTransform.Origin,
+            ObjectTransform.Rotation,
             Tint
         );
     }
