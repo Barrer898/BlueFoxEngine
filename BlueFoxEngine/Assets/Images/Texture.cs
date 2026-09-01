@@ -4,7 +4,7 @@ using Raylib_cs;
 
 namespace BlueFoxEngine.Assets.Textures;
 
-public class TextureAsset
+public class TextureAsset : Object
 {
     private Logger _logger = new("TextureAsset");
     public Texture2D? Texture { get; private set; }
@@ -47,5 +47,10 @@ public class TextureAsset
             
             return;
         }
+    }
+
+    public override void Destroy()
+    {
+        base.Destroy();
     }
 }

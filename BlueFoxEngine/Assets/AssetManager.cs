@@ -567,7 +567,7 @@ public static class AssetLoader
     public static bool ReleaseTextureResource(string textureRelativePath)
     {
         TextureAsset? textureToUnload = FindTextureInCache(textureRelativePath);
-        if(textureToUnload != null && Raylib.IsTextureValid(textureToUnload.Texture.Value) && SoundCache.TryGet(textureRelativePath, out var cachedTextureAsset))
+        if(textureToUnload != null && Raylib.IsTextureValid(textureToUnload.Texture.Value) && TextureCache.TryGet(textureRelativePath, out var cachedTextureAsset))
         {
             cachedTextureAsset.DecreaseReferenceCount();
             if(cachedTextureAsset.ReferenceCount == 0)
@@ -603,7 +603,7 @@ public static class AssetLoader
                 Logger.OutputLevel.Error, $"Cached texture is not valid?!: {textureRelativePath}");
 
             // Remove the invalid cache entry.
-            MusicCache.Remove(textureRelativePath);
+            TextureCache.Remove(textureRelativePath);
 
             return null;
         }

@@ -10,6 +10,7 @@ namespace BlueFoxEngine.Scenes
         public abstract void Unload();
         public abstract void Update(double deltaTime);
         public abstract void Draw();
+        private List<string> MusicPlayerUIDList;
     }
 
     public static class SceneManager

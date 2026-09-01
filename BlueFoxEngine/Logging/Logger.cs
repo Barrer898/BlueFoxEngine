@@ -1,6 +1,6 @@
 using BlueFoxEngine.Configuration;
 namespace BlueFoxEngine.Logging;
-public class Logger
+public class Logger : Object
 {
     public enum OutputType
     {

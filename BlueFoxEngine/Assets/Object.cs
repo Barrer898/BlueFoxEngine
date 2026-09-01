@@ -2,7 +2,31 @@ using System.Numerics;
 
 namespace BlueFoxEngine.Assets;
 
-public class Object2D
+public class Object : IDisposable
+{
+    private bool _isRunningFromDispose = false;
+    /// <summary>
+    /// Apply any pre-destruction code here.
+    /// Leave base.Destroy() at the beginning of your override
+    /// </summary>
+    public virtual void Destroy()
+    {
+        if (!_isRunningFromDispose)
+        {
+            Dispose();
+            _isRunningFromDispose = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        _isRunningFromDispose = true;
+        Destroy();
+        GC.SuppressFinalize(this);
+    }
+}
+
+public class Object2D : IDisposable
 {
     public Vector2 Position { get; set; }
 
@@ -12,6 +36,28 @@ public class Object2D
 
     public Vector2 Origin { get; set; } = Vector2.Zero;
 
+    
+    private bool _isRunningFromDispose = false;
+    
+    public void Dispose()
+    {
+        _isRunningFromDispose = true;
+        Destroy();
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Apply any pre-destruction code here.
+    /// </summary>
+    public virtual void Destroy()
+    {
+        if (!_isRunningFromDispose)
+        {
+            Dispose();
+            _isRunningFromDispose = false;
+        }
+    }
+    
     public float GetPositionX()
     {
         return Position.X;

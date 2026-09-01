@@ -1,3 +1,4 @@
+using BlueFoxEngine.Assets;
 using BlueFoxEngine.Configuration;
 using BlueFoxEngine.Logging;
 using Raylib_cs;
@@ -87,6 +88,9 @@ public class EngineCore
         // Unload all resources and close the window
         Raylib.CloseAudioDevice();  // Close the audio device first
         Raylib.CloseWindow();
+        AssetLoader.ClearSoundCache();
+        AssetLoader.ClearMusicCache(); // TODO: Fix this one
+        AssetLoader.ClearTextureCache();
         _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Info, "Goodbye!");
     }
 }

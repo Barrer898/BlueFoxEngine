@@ -1,4 +1,5 @@
 
+using System.Runtime.CompilerServices;
 using BlueFoxEngine.Assets;
 using BlueFoxEngine.Configuration;
 using BlueFoxEngine.Logging;
@@ -19,7 +20,7 @@ namespace BlueFoxEngine.Assets;
 /// MusicPlayer does not own the underlying MusicAsset resources.
 /// Those are managed by AssetLoader and its asset cache.
 /// </summary>
-public class MusicPlayer
+public class MusicPlayer : Object
 {
     private readonly Logger _logger = new("MusicPlayer");
 
@@ -67,8 +68,39 @@ public class MusicPlayer
         Layers = new MusicLayer[layerCount];
 
         UID = SceneManager.RegisterMusicPlayer(this);
+        
+        
     }
 
+    public override void Destroy()
+    {
+        base.Destroy();
+        if (this.UID != null && this.UID != "")
+        {
+            this.StopAllMusic();
+            try
+            {
+                SceneManager.UnregisterMusicPlayer(this.UID);
+            }
+            catch (Exception e)
+            {
+                _logger.Output(Logger.OutputType.ExceptionThrownError, Logger.OutputLevel.Error, "Failed to Unregister MusicPlayer from the SceneManager.", e);
+            }
+            try
+            {
+                if(this.Layers == null || this.Layers.Length == 0 ) return;
+                foreach (MusicLayer layer in this.Layers)
+                {
+                    layer.SetLayerIndex(-1);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Output(Logger.OutputType.ExceptionThrownError, Logger.OutputLevel.Error, "Failed to de-index all music layers! possible unexpected behaviour", e);
+            }
+        }
+    }
+    
     public int AddLayer(MusicLayer musicLayer)
     {
         if (musicLayer.LayerIndex != -1)

@@ -4,15 +4,11 @@ using System.Numerics;
 
 namespace BlueFoxEngine.Assets.Sprite;
 
-public class Sprite
+public class Sprite : Object2D
 {
     public TextureAsset Texture { get; private set; }
 
-    public Object2D ObjectTransform { get; }
-    public Object2D GetObjectTransformData()
-    {
-        return ObjectTransform;
-    }
+    //public Object2D ObjectTransform { get; }
 
     public Color Tint { get; set; } = Color.White;
 
@@ -24,7 +20,6 @@ public class Sprite
 
     public Sprite(TextureAsset texture)
     {
-        this.ObjectTransform = new Object2D();
         this.Texture = texture;
         SourceRectangle =new(
             0,
@@ -37,7 +32,6 @@ public class Sprite
     public Sprite(TextureAsset texture, Object2D objectData)
     {
         this.Texture = texture;
-        this.ObjectTransform = objectData;
         SourceRectangle =new(
             0,
             0,
@@ -49,7 +43,7 @@ public class Sprite
 
     public void SetOriginCenter()
     {
-        this.ObjectTransform.Origin = new Vector2(
+        this.Origin = new Vector2(
             SourceRectangle.Width / 2f,
             SourceRectangle.Height / 2f
         );
@@ -63,19 +57,24 @@ public class Sprite
         Rectangle source = SourceRectangle;
 
         Rectangle destination = new(
-            ObjectTransform.Position.X,
-            ObjectTransform.Position.Y,
-            SourceRectangle.Width * ObjectTransform.Scale.X,
-            SourceRectangle.Height * ObjectTransform.Scale.Y
+            this.Position.X,
+            this.Position.Y,
+            SourceRectangle.Width * this.Scale.X,
+            SourceRectangle.Height * this.Scale.Y
         );
 
         Raylib.DrawTexturePro(
             Texture.Texture!.Value,
             source,
             destination,
-            ObjectTransform.Origin,
-            ObjectTransform.Rotation,
+            this.Origin,
+            this.Rotation,
             Tint
         );
+    }
+
+    public override void Destroy()
+    {
+        base.Destroy();
     }
 }

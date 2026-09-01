@@ -3,7 +3,7 @@ using Raylib_cs;
 namespace BlueFoxEngine.Assets;
 
 
-public class MusicSequence
+public class MusicSequence : Object // To Be Rewritten: I'll adapt to Payday3's method of SequencedMusic. But that gets put off for later. -B
 {
     public float SequenceBeginTimestamp { get; private set; }
     public float SequenceEndTimestamp { get; private set; }
@@ -16,9 +16,14 @@ public class MusicSequence
         this.SequenceEndTimestamp = sequenceEndTimestamp;
         this.LoopCondition = loopCondition;
     }
+
+    public override void Destroy()
+    {
+        base.Destroy();
+    }
 }
 
-public class SequencedMusicAsset
+public class SequencedMusicAsset : Object
 {
     public List<MusicSequence> MusicSequences { get; private set; }
     public MusicAsset MusicAsset { get; private set; }
@@ -70,5 +75,10 @@ public class SequencedMusicAsset
     public int GetIndexOfCurrentSequence()
     {
         return CurrentSequenceIndex;
+    }
+    
+    public override void Destroy() // actual destroy/unload logic should be in the MusicAsset this just uses the MusicObject. 
+    {
+        base.Destroy();
     }
 }
