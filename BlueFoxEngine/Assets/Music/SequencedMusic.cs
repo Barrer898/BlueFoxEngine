@@ -16,11 +16,7 @@ public class MusicSequence : Object // To Be Rewritten: I'll adapt to Payday3's 
         this.SequenceEndTimestamp = sequenceEndTimestamp;
         this.LoopCondition = loopCondition;
     }
-
-    public override void Destroy()
-    {
-        base.Destroy();
-    }
+    
 }
 
 public class SequencedMusicAsset : Object
@@ -75,10 +71,5 @@ public class SequencedMusicAsset : Object
     public int GetIndexOfCurrentSequence()
     {
         return CurrentSequenceIndex;
-    }
-    
-    public override void Destroy() // actual destroy/unload logic should be in the MusicAsset this just uses the MusicObject. 
-    {
-        base.Destroy();
     }
 }

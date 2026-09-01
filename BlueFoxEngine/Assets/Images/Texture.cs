@@ -48,9 +48,4 @@ public class TextureAsset : Object
             return;
         }
     }
-
-    public override void Destroy()
-    {
-        base.Destroy();
-    }
 }

@@ -4,29 +4,18 @@ namespace BlueFoxEngine.Assets;
 
 public class Object : IDisposable
 {
-    private bool _isRunningFromDispose = false;
-    /// <summary>
-    /// Apply any pre-destruction code here.
-    /// Leave base.Destroy() at the beginning of your override
-    /// </summary>
-    public virtual void Destroy()
-    {
-        if (!_isRunningFromDispose)
-        {
-            Dispose();
-            _isRunningFromDispose = false;
-        }
-    }
-
+    public virtual void DisposeLogic() { }
+    
+    private Action _disposeLogic => DisposeLogic;
+    
     public void Dispose()
     {
-        _isRunningFromDispose = true;
-        Destroy();
+        _disposeLogic();
         GC.SuppressFinalize(this);
     }
 }
 
-public class Object2D : IDisposable
+public class Object2D : Object
 {
     public Vector2 Position { get; set; }
 
@@ -35,28 +24,7 @@ public class Object2D : IDisposable
     public float Rotation { get; set; }
 
     public Vector2 Origin { get; set; } = Vector2.Zero;
-
     
-    private bool _isRunningFromDispose = false;
-    
-    public void Dispose()
-    {
-        _isRunningFromDispose = true;
-        Destroy();
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// Apply any pre-destruction code here.
-    /// </summary>
-    public virtual void Destroy()
-    {
-        if (!_isRunningFromDispose)
-        {
-            Dispose();
-            _isRunningFromDispose = false;
-        }
-    }
     
     public float GetPositionX()
     {

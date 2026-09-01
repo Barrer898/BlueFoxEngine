@@ -71,10 +71,10 @@ public class MusicPlayer : Object
         
         
     }
+    
 
-    public override void Destroy()
+    public override void DisposeLogic()
     {
-        base.Destroy();
         if (this.UID != null && this.UID != "")
         {
             this.StopAllMusic();

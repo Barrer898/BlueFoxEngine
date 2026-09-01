@@ -45,7 +45,7 @@ public sealed class DebugScene : Scene
 
     public override void Unload()
     { 
-        musicPlayer.Destroy();
+        musicPlayer.Dispose();
     }
 
     public override void Update(double deltaTime)

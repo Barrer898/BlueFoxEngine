@@ -72,9 +72,4 @@ public class Sprite : Object2D
             Tint
         );
     }
-
-    public override void Destroy()
-    {
-        base.Destroy();
-    }
 }
