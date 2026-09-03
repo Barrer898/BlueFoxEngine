@@ -56,6 +56,7 @@ public class Sprite : Object2D
         {
             this.Texture = MissingTexture.Generate();
             _logger.Output(Logger.OutputType.ExceptionThrownError, Logger.OutputLevel.Error, "No sprite sheet set!", new InvalidOperationException("Sprite does not have a SpriteSheet."));
+            return;
         }
 
         try

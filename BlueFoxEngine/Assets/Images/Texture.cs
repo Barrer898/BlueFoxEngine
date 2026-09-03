@@ -53,11 +53,11 @@ public class TextureAsset : Object
 public static class MissingTexture
 {
     private static TextureAsset? _missingTextureCache;
-    
-    public static TextureAsset Generate(
-        int width = 128,
-        int height = 128,
-        int checkerSize = 16)
+    private const int width = 512;
+    private const int height = 512;
+    private const int checkerSize = 32;
+        
+    public static TextureAsset Generate()
     {
         if (_missingTextureCache == null)
         {

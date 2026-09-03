@@ -79,7 +79,12 @@ namespace BlueFoxEngine.Scenes
                             musicPlayerKeyValuePair.Value.Update(deltaTime);
                     }
                 }
-                
+
+                foreach (BlueFoxEngine.Assets.Object obj in BlueFoxEngine.Assets.Object.ObjectArray)
+                {
+                    if(obj != null)
+                        obj.UpdateComponents(deltaTime);
+                }
                 
             }
             EngineCore.Close();

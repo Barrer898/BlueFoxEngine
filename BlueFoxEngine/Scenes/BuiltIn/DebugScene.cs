@@ -2,6 +2,7 @@ using System.Numerics;
 using BlueFoxEngine.Assets;
 using BlueFoxEngine.Assets.Textures;
 using BlueFoxEngine.Assets.Sprite;
+using BlueFoxEngine.Components.DebugComponents;
 using BlueFoxEngine.Helper;
 using BlueFoxEngine.Logging;
 using Raylib_cs;
@@ -38,6 +39,9 @@ public sealed class DebugScene : Scene
         testSprite = new Sprite(debugSheet,0);
         testSprite.Position = new Vector2(640,360) ;
         testSprite.SetOriginCenter();
+
+        testSprite.AddComponent<RotatorComponent>();
+        //testSprite.GetComponent<RotatorComponent>().Speed = 0.02f;
         
         musicPlayer = new MusicPlayer();
         
@@ -52,7 +56,7 @@ public sealed class DebugScene : Scene
     public override void Update(double deltaTime)
     {
         _time += deltaTime;
-        testSprite.Rotation += 0.02f;
+        //testSprite.Rotation += 0.02f;
         testSprite.SetFrame((int)Math.Floor(testSprite.Rotation));
         //musicPlayer.Update();
     }

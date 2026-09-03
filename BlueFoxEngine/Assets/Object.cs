@@ -1,22 +1,101 @@
+using BlueFoxEngine.Components;
 using System.Numerics;
+using BlueFoxEngine.Logging;
 
 namespace BlueFoxEngine.Assets;
 
+
+
 public class Object : IDisposable
 {
+    private Logger _logger = new Logger("ObjectClass");
+    protected internal static uint CurrentObjectCount { get; private set; } = 0;
+    protected internal static Object[] ObjectArray { get; private set; }  = new Object[1024]; // add this value to engineconfig later.
+
+    public Object()
+    {
+        ObjectArray[CurrentObjectCount] = this;
+        CurrentObjectCount += 1;
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, $"Current ObjectCount: {CurrentObjectCount} / 1024");
+    }
+    
     private bool _disposed;
 
+    private readonly List<Component> _components = new();
+
     public bool IsDisposed => _disposed;
+
+    public IReadOnlyList<Component> Components => _components;
+
+    protected virtual void DisposeLogic()
+    {
+    }
     
-    protected virtual void DisposeLogic() { }
+
+    public T AddComponent<T>() where T : Component
+    {
+        T component = Activator.CreateInstance<T>();
+
+        component.Owner = this;
+
+        _components.Add(component);
+
+        return component;
+    }
     
+    public T AddComponent<T>(Func<Object, T> factory)
+        where T : Component
+    {
+        T component = factory(this);
+
+        _components.Add(component);
+
+        return component;
+    }
+
+    public T? GetComponent<T>() where T : Component
+    {
+        return _components.OfType<T>().FirstOrDefault();
+    }
+
+    public bool TryGetComponent<T>(out T? component)
+        where T : Component
+    {
+        component = _components.OfType<T>().FirstOrDefault();
+        return component != null;
+    }
+
+    public void RemoveComponent<T>() where T : Component
+    {
+        T? component = GetComponent<T>();
+
+        if (component == null)
+            return;
+
+        _components.Remove(component);
+        component.Dispose();
+    }
+
+    public void UpdateComponents(double deltaTime)
+    {
+        foreach (Component component in _components)
+            component.Update(deltaTime);
+    }
+
     public void Dispose()
     {
         if (_disposed)
             return;
-        
-        DisposeLogic();
+
         _disposed = true;
+
+        DisposeLogic();
+
+        foreach (Component component in _components)
+            component.Dispose();
+
+        _components.Clear();
+
         GC.SuppressFinalize(this);
     }
 }
