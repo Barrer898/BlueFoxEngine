@@ -49,3 +49,59 @@ public class TextureAsset : Object
         }
     }
 }
+
+public static class MissingTexture
+{
+    private static TextureAsset? _missingTextureCache;
+    
+    public static TextureAsset Generate(
+        int width = 128,
+        int height = 128,
+        int checkerSize = 16)
+    {
+        if (_missingTextureCache == null)
+        {
+            Image image = Raylib.GenImageColor(
+                width,
+                height,
+                Color.Black
+            );
+
+            Color purple = new Color(255, 0, 255, 255);
+            Color black = new Color(0, 0, 0, 255);
+
+            // Generate the checkerboard.
+            for (int y = 0; y < height; y += checkerSize)
+            {
+                for (int x = 0; x < width; x += checkerSize)
+                {
+                    bool even = ((x / checkerSize) + (y / checkerSize)) % 2 == 0;
+
+                    Raylib.ImageDrawRectangle(
+                        ref image,
+                        x,
+                        y,
+                        checkerSize,
+                        checkerSize,
+                        even ? purple : black
+                    );
+                }
+            }
+
+
+            Texture2D texture = Raylib.LoadTextureFromImage(image);
+
+            _missingTextureCache = new TextureAsset(texture);
+
+            Raylib.UnloadImage(image);
+
+            return _missingTextureCache;
+        }
+        else
+            return _missingTextureCache;
+
+
+
+
+    }
+}

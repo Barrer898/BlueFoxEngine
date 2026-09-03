@@ -1,14 +1,16 @@
 using Raylib_cs;
 using BlueFoxEngine.Assets.Textures;
 using System.Numerics;
+using BlueFoxEngine.Logging;
 
 namespace BlueFoxEngine.Assets.Sprite;
 
 public class Sprite : Object2D
 {
+    private Logger _logger = new Logger("SpriteSystem");
     public TextureAsset Texture { get; private set; }
-
-    //public Object2D ObjectTransform { get; }
+    
+    public SpriteSheet? SpriteSheet { get; private set; }
 
     public Color Tint { get; set; } = Color.White;
 
@@ -38,6 +40,33 @@ public class Sprite : Object2D
             Texture.Width,
             Texture.Height
         );
+        
+    }
+    public Sprite(SpriteSheet spriteSheet, int frame)
+    {
+        SpriteSheet = spriteSheet;
+        Texture = spriteSheet.Texture;
+
+        SetFrame(frame);
+    }
+
+    public void SetFrame(int frame)
+    {
+        if (SpriteSheet == null)
+        {
+            this.Texture = MissingTexture.Generate();
+            _logger.Output(Logger.OutputType.ExceptionThrownError, Logger.OutputLevel.Error, "No sprite sheet set!", new InvalidOperationException("Sprite does not have a SpriteSheet."));
+        }
+
+        try
+        {
+            SourceRectangle = SpriteSheet.GetFrame(frame);
+        }
+        catch (Exception e)
+        {
+            this.Texture = MissingTexture.Generate();
+            _logger.Output(Logger.OutputType.ExceptionThrownError, Logger.OutputLevel.Error, "Failed to set specified frame.", e);
+        }
         
     }
 

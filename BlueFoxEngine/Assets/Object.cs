@@ -4,13 +4,19 @@ namespace BlueFoxEngine.Assets;
 
 public class Object : IDisposable
 {
-    public virtual void DisposeLogic() { }
+    private bool _disposed;
+
+    public bool IsDisposed => _disposed;
     
-    private Action _disposeLogic => DisposeLogic;
+    protected virtual void DisposeLogic() { }
     
     public void Dispose()
     {
-        _disposeLogic();
+        if (_disposed)
+            return;
+        
+        DisposeLogic();
+        _disposed = true;
         GC.SuppressFinalize(this);
     }
 }

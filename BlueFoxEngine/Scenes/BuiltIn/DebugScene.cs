@@ -17,6 +17,7 @@ public sealed class DebugScene : Scene
     private MusicLayer PrimaryMusicLayer = new MusicLayer("PrimaryMusicLayer", true);
     private MusicPlayer musicPlayer;
     private TextureAsset debugTexture;
+    private SpriteSheet debugSheet;
     private Sprite testSprite;
     
     public override void Load()
@@ -30,11 +31,11 @@ public sealed class DebugScene : Scene
         list.Add(new MusicSequence(0f, 102.52f, () => false));
         list.Add(new MusicSequence(102.52f, 103.44f, () => true));
 
-        debugTexture = AssetLoader.LoadTextureResource("debug.png");
+        debugSheet = new SpriteSheet(AssetLoader.LoadTextureResource("debug.png"),125,125) ;
         
         testSong = new SequencedMusicAsset(list, temp);
 
-        testSprite = new Sprite(debugTexture);
+        testSprite = new Sprite(debugSheet,0);
         testSprite.Position = new Vector2(640,360) ;
         testSprite.SetOriginCenter();
         
@@ -52,6 +53,7 @@ public sealed class DebugScene : Scene
     {
         _time += deltaTime;
         testSprite.Rotation += 0.02f;
+        testSprite.SetFrame((int)Math.Floor(testSprite.Rotation));
         //musicPlayer.Update();
     }
 

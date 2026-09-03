@@ -73,7 +73,7 @@ public class MusicPlayer : Object
     }
     
 
-    public override void DisposeLogic()
+    protected override void DisposeLogic()
     {
         if (this.UID != null && this.UID != "")
         {
