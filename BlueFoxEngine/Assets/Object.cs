@@ -27,8 +27,19 @@ public class Object : IDisposable
 
     protected virtual void DisposeLogic()
     {
+        
     }
-    
+
+    internal void DisposeAllComponents()
+    {
+        if (this.Components.Count > 0)
+        {
+            foreach (Component component in this.Components)
+            {
+                component.Dispose();
+            }
+        }
+    }
 
     public T AddComponent<T>() where T : Component
     {

@@ -94,7 +94,7 @@ public class MusicPlayer : Object
                     if (layer == null)
                     {
                         _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Debug, "Layer is null, ignoring.");
-                        break;
+                        continue;
                     }
 
                     layer.SetLayerIndex(-1); 

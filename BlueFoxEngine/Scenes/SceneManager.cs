@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using BlueFoxEngine.Components;
 using BlueFoxEngine.Assets;
 using BlueFoxEngine.Logging;
 using Raylib_cs;
@@ -29,6 +30,7 @@ namespace BlueFoxEngine.Scenes
 
         public static void RegisterNewObject(BlueFoxEngine.Assets.Object obj)
         {
+            if (_currentScene == null) return;
             if (_currentScene.MaximumObjectCount < _currentScene.CurrentObjectCount + 1)
             {
                 throw new OutOfObjectSpaceException("Ran out of free SceneObjectList space.");
@@ -38,6 +40,7 @@ namespace BlueFoxEngine.Scenes
         }
         public static void UnregisterObject(BlueFoxEngine.Assets.Object obj)
         {
+            if (_currentScene == null) return;
             if (obj.IsDisposed)
             {
                 if (!_currentScene.SceneObjectList.Remove(obj))
@@ -51,8 +54,9 @@ namespace BlueFoxEngine.Scenes
             }
         }
 
-        public static void DisposeObject(BlueFoxEngine.Assets.Object obj)
+        public static void DisposeObjectAndRemoveFromSceneObjectList(BlueFoxEngine.Assets.Object obj)
         {
+                obj.DisposeAllComponents();
                 obj.Dispose();
                 if (!_currentScene.SceneObjectList.Remove(obj))
                 {
@@ -64,6 +68,7 @@ namespace BlueFoxEngine.Scenes
         {
             foreach (BlueFoxEngine.Assets.Object obj in _currentScene.SceneObjectList)
             {
+                obj.DisposeAllComponents();
                 obj.Dispose();
             }
 
