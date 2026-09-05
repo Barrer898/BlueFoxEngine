@@ -25,9 +25,15 @@ public class Object : IDisposable
 
     public IReadOnlyList<Component> Components => _components;
 
+    /// <summary>
+    /// Remember to add the base of this function in your override.
+    /// </summary>
     protected virtual void DisposeLogic()
     {
-        
+        foreach (Component component in Components)
+            component.Dispose();
+
+        _components.Clear();
     }
 
     internal void DisposeAllComponents()

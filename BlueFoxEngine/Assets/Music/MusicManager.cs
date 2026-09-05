@@ -75,6 +75,8 @@ public class MusicPlayer : Object
 
     protected override void DisposeLogic()
     {
+        base.DisposeLogic();
+        
         if (this.UID != null && this.UID != "")
         {
             this.StopAllMusic();

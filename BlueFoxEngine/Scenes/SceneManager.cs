@@ -68,7 +68,6 @@ namespace BlueFoxEngine.Scenes
         {
             foreach (BlueFoxEngine.Assets.Object obj in _currentScene.SceneObjectList)
             {
-                obj.DisposeAllComponents();
                 obj.Dispose();
             }
 

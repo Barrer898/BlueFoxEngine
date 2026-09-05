@@ -1,4 +1,7 @@
-﻿using BlueFoxEngine.Logging;
+﻿
+// Murphy's Law. Everything that can go wrong, **Will** go wrong.
+
+using BlueFoxEngine.Logging;
 using BlueFoxEngine.Configuration;
 using BlueFoxEngine.Helper;
 using BlueFoxEngine.Scenes;
@@ -7,7 +10,7 @@ namespace BlueFoxEngine;
 
 static class Init
 {
-    internal static EngineCore _EngineCore;
+    private static EngineCore _EngineCore;
     private static Logger _logger = new Logger("EngineInit");
     static void Main(string[] args) // Bootstrap/Entery point YAY
     {
