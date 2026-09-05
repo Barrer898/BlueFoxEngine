@@ -1,6 +1,6 @@
 namespace BlueFoxEngine.Components;
 
-public class Component
+public class Component : Object
 {
     public Object? Owner { get; internal set; }
 

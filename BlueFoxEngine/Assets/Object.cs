@@ -1,6 +1,7 @@
 using BlueFoxEngine.Components;
 using System.Numerics;
 using BlueFoxEngine.Logging;
+using BlueFoxEngine.Scenes;
 
 namespace BlueFoxEngine.Assets;
 
@@ -9,14 +10,11 @@ namespace BlueFoxEngine.Assets;
 public class Object : IDisposable
 {
     private Logger _logger = new Logger("ObjectClass");
-    protected internal static uint CurrentObjectCount { get; private set; } = 0;
-    protected internal static Object[] ObjectArray { get; private set; }  = new Object[1024]; // add this value to engineconfig later.
+ 
 
     public Object()
     {
-        ObjectArray[CurrentObjectCount] = this;
-        CurrentObjectCount += 1;
-        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, $"Current ObjectCount: {CurrentObjectCount} / 1024");
+        SceneManager.RegisterNewObject(this);
     }
     
     private bool _disposed;
@@ -39,6 +37,8 @@ public class Object : IDisposable
         component.Owner = this;
 
         _components.Add(component);
+        
+        component.Initialize();
 
         return component;
     }

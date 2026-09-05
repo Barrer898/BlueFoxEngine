@@ -91,7 +91,13 @@ public class MusicPlayer : Object
                 if(this.Layers == null || this.Layers.Length == 0 ) return;
                 foreach (MusicLayer layer in this.Layers)
                 {
-                    layer.SetLayerIndex(-1);
+                    if (layer == null)
+                    {
+                        _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Debug, "Layer is null, ignoring.");
+                        break;
+                    }
+
+                    layer.SetLayerIndex(-1); 
                 }
             }
             catch (Exception e)
@@ -123,8 +129,14 @@ public class MusicPlayer : Object
     
     public bool RemoveLayer(int idx)
     {
+        
         if (idx >= 0 && idx < CurrentEngineConfig._EngineConfig.Audio.MusicLayerCount)
         {
+            if (this.Layers[idx] == null)
+            {
+                _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Info, "Gives index is already null, igoring");
+                return false;
+            }
             this.Layers[idx].SetLayerIndex(-1);
             this.Layers[idx] = null;
         }
@@ -292,10 +304,14 @@ public class MusicPlayer : Object
     {
         foreach (MusicLayer layer in Layers)
         {
-            if (!layer.IsPlaying)
-                continue;
-
-            layer.StopLayer();
+            if(layer != null)
+            {
+                if (!layer.IsPlaying)
+                    continue;
+                
+                layer.StopLayer();
+            }
+            
         }
 
         _logger.Output(

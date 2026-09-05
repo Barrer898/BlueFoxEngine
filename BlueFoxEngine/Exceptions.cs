@@ -33,3 +33,20 @@ public class InvalidAssetException : Exception
     {
     }
 }
+
+public class OutOfObjectSpaceException : Exception
+{
+    public OutOfObjectSpaceException()
+    {
+    }
+
+    public OutOfObjectSpaceException(string message)
+        : base(message)
+    {
+    }
+
+    public OutOfObjectSpaceException(string message, Exception inner)
+        : base(message, inner)
+    {
+    }
+}

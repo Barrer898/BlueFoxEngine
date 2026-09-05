@@ -41,7 +41,7 @@ public sealed class DebugScene : Scene
         testSprite.SetOriginCenter();
 
         testSprite.AddComponent<RotatorComponent>();
-        //testSprite.GetComponent<RotatorComponent>().Speed = 0.02f;
+        testSprite.GetComponent<RotatorComponent>().Speed = 2.0f;
         
         musicPlayer = new MusicPlayer();
         
@@ -58,6 +58,8 @@ public sealed class DebugScene : Scene
         _time += deltaTime;
         //testSprite.Rotation += 0.02f;
         testSprite.SetFrame((int)Math.Floor(testSprite.Rotation));
+        if (testSprite.Rotation > 25)
+            SceneManager.SetCurrentScene(new BlueFoxEngine.Scenes.BuiltIn.DebugSceneButDifferent());
         //musicPlayer.Update();
     }
 
