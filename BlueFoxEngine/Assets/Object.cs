@@ -108,9 +108,7 @@ public class Object : IDisposable
 
         DisposeLogic();
 
-        foreach (CSharpComponent component in _components)
-            component.Dispose();
-
+        // DisposeLogic already disposed each component; just clear the list.
         _components.Clear();
 
         GC.SuppressFinalize(this);

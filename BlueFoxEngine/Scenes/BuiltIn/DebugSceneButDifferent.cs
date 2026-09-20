@@ -20,10 +20,17 @@ public sealed class DebugSceneButDifferent : Scene
     
     public override void Load()
     {
-        YueScriptAsset yueScriptAsset = new YueScriptAsset("HelloWorld.yue");
-        yueScriptAsset.CompileSourceFromFile();
-        YueScriptInstance yueScriptInstance = new YueScriptInstance(yueScriptAsset, yueRuntime);
-        yueScriptInstance.Execute();
+        YueScriptAsset yueScript;
+        YueScriptAsset yueScript2;
+        AssetLoader.TryLoadYueScript("HelloWorld.yue", out yueScript);
+        yueScript.CompileSourceFromFile();
+        YueScriptInstance yueInstance = new YueScriptInstance(yueScript,yueRuntime);
+        yueInstance.Execute();
+        
+        //2nd run test
+        AssetLoader.TryLoadYueScript("HelloWorld.yue", out yueScript2);
+        YueScriptInstance yueInstance2 = new YueScriptInstance(yueScript,yueRuntime);
+        yueInstance2.Execute();
     }
 
     public override void Unload()
