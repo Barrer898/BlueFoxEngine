@@ -1,5 +1,6 @@
-using BlueFoxEngine.Logging;
+using BlueFoxEngine.Assets.Scripts;
 using BlueFoxEngine.Configuration;
+using BlueFoxEngine.Logging;
 using BlueFoxEngine.Assets.Textures;
 using Raylib_cs;
 using System.IO;
@@ -21,6 +22,7 @@ public static class AssetLoader
     private static readonly AssetCache<MusicAsset> MusicCache = new();
     private static readonly AssetCache<TextureAsset> TextureCache = new();
     private static readonly AssetCache<Font> _fontsCache = new();
+    private static readonly AssetCache<YueScriptAsset> ScriptCache = new();
 
     #region Cache
     
@@ -644,6 +646,140 @@ public static class AssetLoader
             Logger.OutputType.Info,
             Logger.OutputLevel.Debug, "Cleared texture cache.");
     }
-  
+
+    #endregion
+    #region Scripts
+
+    /// <summary>
+    /// Loads or reuses a YueScriptAsset by its engine-relative path.
+    ///
+    /// If the script is already cached, its reference count is increased.
+    /// Otherwise, the script is created and added to the cache.
+    ///
+    /// Note: compilation is lazy — the asset's Compiled flag will be
+    /// false until first execution. Call CompileSourceFromFile() on the
+    /// returned asset to compile eagerly.
+    /// </summary>
+    public static CachedAsset<YueScriptAsset> LoadYueScript(string path)
+    {
+        return Load(
+            ScriptCache,
+            path,
+            scriptPath => new YueScriptAsset(scriptPath),
+            script => script != null);
+    }
+
+    /// <summary>
+    /// Attempts to load a YueScript asset from the cache or disk.
+    ///
+    /// The path is resolved relative to the engine's configured
+    /// Assets/Scripts directory before being stored in the cache.
+    /// </summary>
+    public static bool TryLoadYueScript(
+        string scriptRelativePath,
+        out YueScriptAsset? script)
+    {
+        try
+        {
+            scriptRelativePath = scriptRelativePath.TrimStart(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar);
+
+            // Return cached entry if available.
+            if (ScriptCache.TryGet(scriptRelativePath, out var cachedScript) && cachedScript.IsValid)
+            {
+                _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, "Found script cache entry.");
+                cachedScript.IncreaseReferenceCount();
+                script = cachedScript.Asset;
+                return true;
+            }
+
+            // Create the asset and add it to the cache.
+            CachedAsset<YueScriptAsset> newScript = LoadYueScript(
+                System.IO.Path.Combine(
+                    BaseDirectory,
+                    CurrentEngineConfig._EngineConfig.Assets.Directory,
+                    "Scripts",
+                    scriptRelativePath));
+
+            if (newScript.IsValid)
+            {
+                AddYueScriptToCache(scriptRelativePath, newScript);
+                script = newScript.Asset;
+                return true;
+            }
+
+            script = null;
+            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, $"Failed to load script '{scriptRelativePath}'.");
+            return false;
+        }
+        catch (Exception e)
+        {
+            _logger.Output(Logger.OutputType.ExceptionThrownError, Logger.OutputLevel.Error, "Failed to load YueScript.", e);
+            script = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Adds a valid YueScriptAsset to the script cache.
+    /// </summary>
+    internal static void AddYueScriptToCache(
+        string scriptRelativePath,
+        CachedAsset<YueScriptAsset> script)
+    {
+        if (script.IsValid)
+            ScriptCache.Add(scriptRelativePath, script);
+
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, $"Current ScriptCache.Count: {ScriptCache.Count}");
+    }
+
+    /// <summary>
+    /// Releases one reference to a script asset.
+    /// The underlying asset is only removed from the cache when
+    /// the reference count reaches zero.
+    /// </summary>
+    public static bool ReleaseYueScriptResource(string scriptRelativePath)
+    {
+        scriptRelativePath = scriptRelativePath.TrimStart(
+            Path.DirectorySeparatorChar,
+            Path.AltDirectorySeparatorChar);
+
+        if (ScriptCache.TryGet(scriptRelativePath, out var cachedScript) && cachedScript.IsValid)
+        {
+            cachedScript.DecreaseReferenceCount();
+
+            _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, $"Unloading script reference: {scriptRelativePath}");
+            _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Trace, $"Current Ref count: {cachedScript.ReferenceCount}");
+
+            if (cachedScript.ReferenceCount > 0)
+                return true;
+
+            ScriptCache.Remove(scriptRelativePath);
+            return true;
+        }
+
+        _logger.Output(
+            Logger.OutputType.ExceptionThrownWarning,
+            Logger.OutputLevel.Warning,
+            "Failed to unload script resource.",
+            new KeyNotFoundException($"The script asset with relative path '{scriptRelativePath}' was not found in the cache."));
+
+        return false;
+    }
+
+    /// <summary>
+    /// Clears all cached YueScript assets.
+    /// </summary>
+    public static void ClearScriptCache()
+    {
+        if (ScriptCache.Count == 0)
+            return;
+        
+        ScriptCache.Clear();
+
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Debug, "Cleared script cache.");
+    }
+
     #endregion
 }

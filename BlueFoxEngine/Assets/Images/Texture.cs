@@ -4,7 +4,7 @@ using Raylib_cs;
 
 namespace BlueFoxEngine.Assets.Textures;
 
-public class TextureAsset : Object
+public class TextureAsset 
 {
     private Logger _logger = new("TextureAsset");
     public Texture2D? Texture { get; private set; }

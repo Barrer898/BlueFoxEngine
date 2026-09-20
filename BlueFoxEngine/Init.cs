@@ -42,7 +42,7 @@ static class Init
         _EngineCore.InitializeRaylib();
         
         _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Info, "Running Scene : {TBA}");
-        SceneManager.SetCurrentScene(new BlueFoxEngine.Scenes.BuiltIn.DebugScene());
+        SceneManager.SetCurrentScene(new BlueFoxEngine.Scenes.BuiltIn.BasicAssetTest());
         SceneManager.Run();
         
     }

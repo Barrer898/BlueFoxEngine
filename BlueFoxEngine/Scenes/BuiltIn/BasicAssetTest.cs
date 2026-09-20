@@ -8,7 +8,7 @@ using BlueFoxEngine.Logging;
 using Raylib_cs;
 
 namespace BlueFoxEngine.Scenes.BuiltIn;
-public sealed class DebugScene : Scene
+public sealed class BasicAssetTest : Scene
 {
     private double _time;
     private Sound testSound;
@@ -59,7 +59,7 @@ public sealed class DebugScene : Scene
         //testSprite.Rotation += 0.02f;
         testSprite.SetFrame((int)Math.Floor(testSprite.Rotation));
         if (testSprite.Rotation > 25)
-            SceneManager.SetCurrentScene(new BlueFoxEngine.Scenes.BuiltIn.DebugSceneButDifferent());
+            SceneManager.SetCurrentScene(new BlueFoxEngine.Scenes.BuiltIn.YueScriptTest());
         //musicPlayer.Update();
     }
 
