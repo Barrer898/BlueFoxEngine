@@ -5,7 +5,7 @@ namespace BlueFoxEngine.Components.DebugComponents;
 /// These Components WILL be removed later on, testing only.
 /// </summary>
 
-public class RotatorComponent : Component
+public class RotatorComponent : CSharpComponent
 {
     public float Speed { get; set; } = 1f;
 

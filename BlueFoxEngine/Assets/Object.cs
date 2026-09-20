@@ -19,18 +19,18 @@ public class Object : IDisposable
     
     private bool _disposed;
 
-    private readonly List<Component> _components = new();
+    private readonly List<CSharpComponent> _components = new();
 
     public bool IsDisposed => _disposed;
 
-    public IReadOnlyList<Component> Components => _components;
+    public IReadOnlyList<CSharpComponent> Components => _components;
 
     /// <summary>
     /// Remember to add the base of this function in your override.
     /// </summary>
     protected virtual void DisposeLogic()
     {
-        foreach (Component component in Components)
+        foreach (CSharpComponent component in Components)
             component.Dispose();
 
         _components.Clear();
@@ -40,14 +40,14 @@ public class Object : IDisposable
     {
         if (this.Components.Count > 0)
         {
-            foreach (Component component in this.Components)
+            foreach (CSharpComponent component in this.Components)
             {
                 component.Dispose();
             }
         }
     }
 
-    public T AddComponent<T>() where T : Component
+    public T AddComponent<T>() where T : CSharpComponent
     {
         T component = Activator.CreateInstance<T>();
 
@@ -61,7 +61,7 @@ public class Object : IDisposable
     }
     
     public T AddComponent<T>(Func<Object, T> factory)
-        where T : Component
+        where T : CSharpComponent
     {
         T component = factory(this);
 
@@ -70,19 +70,19 @@ public class Object : IDisposable
         return component;
     }
 
-    public T? GetComponent<T>() where T : Component
+    public T? GetComponent<T>() where T : CSharpComponent
     {
         return _components.OfType<T>().FirstOrDefault();
     }
 
     public bool TryGetComponent<T>(out T? component)
-        where T : Component
+        where T : CSharpComponent
     {
         component = _components.OfType<T>().FirstOrDefault();
         return component != null;
     }
 
-    public void RemoveComponent<T>() where T : Component
+    public void RemoveComponent<T>() where T : CSharpComponent
     {
         T? component = GetComponent<T>();
 
@@ -95,7 +95,7 @@ public class Object : IDisposable
 
     public void UpdateComponents(double deltaTime)
     {
-        foreach (Component component in _components)
+        foreach (CSharpComponent component in _components)
             component.Update(deltaTime);
     }
 
@@ -108,7 +108,7 @@ public class Object : IDisposable
 
         DisposeLogic();
 
-        foreach (Component component in _components)
+        foreach (CSharpComponent component in _components)
             component.Dispose();
 
         _components.Clear();

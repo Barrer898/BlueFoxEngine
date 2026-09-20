@@ -1,14 +1,14 @@
 namespace BlueFoxEngine.Components;
 
-public class Component : IDisposable
+public class CSharpComponent : IDisposable 
 {
-    public Object? Owner { get; internal set; }
+    public Object Owner { get; internal set; }
 
-    protected Component(Object owner)
+    protected CSharpComponent(Object owner)
     {
         Owner = owner;
     }
-    protected Component()
+    protected CSharpComponent()
     {
     }
 

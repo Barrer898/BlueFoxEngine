@@ -34,7 +34,17 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="Raylib-cs" Version="8.0.0" />
+        <PackageReference Include="Raylib-cs" Version="8.0.0" />
+        <Reference Include="KeraLua">
+            <HintPath>/home/barrer898/Documents/KeraLua/KeraLua/lib/Debug/net8.0/KeraLua.dll</HintPath>
+        </Reference>
+        <None Include="YueScript/liblua54.so">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+
+        <None Include="YueScript/yue.so">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Rendering\" />
