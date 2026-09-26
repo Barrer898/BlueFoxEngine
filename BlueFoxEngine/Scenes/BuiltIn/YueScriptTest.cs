@@ -3,6 +3,7 @@ using BlueFoxEngine.Assets;
 using BlueFoxEngine.Assets.Scripts;
 using BlueFoxEngine.Assets.Textures;
 using BlueFoxEngine.Assets.Sprite;
+using BlueFoxEngine.Components;
 using BlueFoxEngine.Components.DebugComponents;
 using BlueFoxEngine.Scripting;
 using BlueFoxEngine.Helper;
@@ -14,7 +15,9 @@ namespace BlueFoxEngine.Scenes.BuiltIn;
 public sealed class YueScriptTest : Scene
 {
     private YueScriptRuntime yueRuntime = new YueScriptRuntime();
-   
+    private TextureAsset debugTexture;
+    private Sprite TestSprite;
+    private YueScriptComponent TestComponent;
     
     private double _time;
     
@@ -35,6 +38,13 @@ public sealed class YueScriptTest : Scene
         Console.WriteLine(
             ReferenceEquals(yueScript, yueScript2)
         );
+
+        debugTexture = AssetLoader.LoadTextureResource("debug.png");
+        TestSprite = new Sprite(debugTexture);
+
+        TestComponent = new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset);
+        TestSprite.AddComponent<YueScriptComponent>(TestComponent);
+        
     }
 
     public override void Unload()

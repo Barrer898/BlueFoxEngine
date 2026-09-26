@@ -60,6 +60,18 @@ public class Object : IDisposable
         return component;
     }
     
+
+    public T AddComponent<T>(T component) where T : YueScriptComponent
+    {
+        component.Owner = this;
+
+        _components.Add(component);
+
+        component.Initialize();
+
+        return component;
+    }
+    
     public T AddComponent<T>(Func<Object, T> factory)
         where T : CSharpComponent
     {

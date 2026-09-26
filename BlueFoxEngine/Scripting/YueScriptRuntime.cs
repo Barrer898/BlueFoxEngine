@@ -48,6 +48,8 @@ public sealed class YueScriptRuntime : IDisposable
     {
         _lua.DoString("""
                           yue = require("yue")
+                          _G.Script = {}
+                          _G.Script.Parent = {}
                       """);
     }
 
@@ -56,6 +58,8 @@ public sealed class YueScriptRuntime : IDisposable
         if (_disposed)
             throw new ObjectDisposedException(nameof(YueScriptRuntime));
 
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Trace, source);
+        
         _lua.DoString(source);
     }
 

@@ -1,6 +1,7 @@
 using BlueFoxEngine.Assets.Scripts;
 using BlueFoxEngine.Logging;
 using BlueFoxEngine.Scripting;
+using KeraLua;
 
 namespace BlueFoxEngine.Components;
 
@@ -32,6 +33,7 @@ public class YueScriptComponent : CSharpComponent
     public YueScriptAsset? Asset => Instance?.Asset;
 
     private YueScriptRuntime? _runtime;
+    
 
     /// <summary>
     /// Creates an empty component. Call SetAsset before adding to an Object.
@@ -55,7 +57,8 @@ public class YueScriptComponent : CSharpComponent
     {
         if (asset == null)
         {
-            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, "Cannot assign null asset to YueScriptComponent.");
+            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning,
+                "Cannot assign null asset to YueScriptComponent.");
             return;
         }
 
@@ -75,7 +78,8 @@ public class YueScriptComponent : CSharpComponent
     {
         if (Instance == null)
         {
-            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, "No script assigned to YueScriptComponent. Call SetAsset() first.");
+            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning,
+                "No script assigned to YueScriptComponent. Call SetAsset() first.");
             return;
         }
 
@@ -88,15 +92,63 @@ public class YueScriptComponent : CSharpComponent
         Instance.Execute();
     }
 
-    /// <summary>
-    /// Runs Execute() on every update tick.
-    ///
-    /// Be cautious — this re-executes the script every frame. Use a
-    /// guard inside the script itself if per-frame execution is not desired.
-    /// </summary>
+    public override void Initialize()
+    {
+        base.Initialize();
+        if (Instance == null) return;
+        if (!Instance.Asset.Compiled)
+        {
+            Instance.Asset.CompileSourceFromFile();
+        }
+
+        Instance.Execute();
+    }
+
     public override void Update(double deltaTime)
     {
-        Execute();
+        if (Instance == null)
+            return;
+        
+        Lua lua = Instance.Runtime.GetLuaCore();
+
+        lua.GetGlobal("Script");
+
+        if (lua.IsNil(-1))
+        {
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning,
+                "Script table does not exist."
+            );
+
+            lua.Pop(1);
+            return;
+        }
+
+        lua.GetField(-1, "OnUpdate");
+
+        // Remove the Script table, leaving only OnUpdate.
+        lua.Remove(-2);
+
+        if (lua.IsNil(-1))
+        {
+            lua.Pop(1);
+            return;
+        }
+
+        lua.PushNumber(deltaTime);
+
+        LuaStatus status = lua.PCall(1, 0, 0);
+
+        if (status != LuaStatus.OK)
+        {
+            string error = lua.ToString(-1);
+            lua.Pop(1);
+
+            throw new Exception(
+                $"YueScriptComponent OnUpdate failed: {error}"
+            );
+        }
     }
 
     /// <summary>
