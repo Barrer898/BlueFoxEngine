@@ -28,6 +28,7 @@ public sealed class YueScriptTest : Scene
         AssetLoader.TryLoadYueScript("HelloWorld.yue", out yueScript);
         yueScript.CompileSourceFromFile();
         YueScriptInstance yueInstance = new YueScriptInstance(yueScript,yueRuntime);
+        this._sceneGlobalYueScriptInstance = yueInstance;
         yueInstance.Execute();
         
         //2nd run test
@@ -41,10 +42,9 @@ public sealed class YueScriptTest : Scene
 
         debugTexture = AssetLoader.LoadTextureResource("debug.png");
         TestSprite = new Sprite(debugTexture);
-
-        TestComponent = new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset);
-        TestSprite.AddComponent<YueScriptComponent>(TestComponent);
         
+        TestComponent = TestSprite.AddComponent<YueScriptComponent>(new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset, _sceneGlobalYueScriptInstance.Runtime, "YueTestComponent"));
+        TestComponent.Execute();
     }
 
     public override void Unload()

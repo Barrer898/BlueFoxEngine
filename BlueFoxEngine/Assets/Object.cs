@@ -61,7 +61,7 @@ public class Object : IDisposable
     }
     
 
-    public T AddComponent<T>(T component) where T : YueScriptComponent
+    public T AddComponent<T>(T component) where T : CSharpComponent
     {
         component.Owner = this;
 

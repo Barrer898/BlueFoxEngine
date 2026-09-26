@@ -5,7 +5,9 @@ namespace BlueFoxEngine.Scripting;
 
 public sealed class YueScriptRuntime : IDisposable
 {
-    private Logger _logger = new Logger("YueScriptRuntime");
+    private Logger _logger;
+    public string? ComponentName { get; private set; }
+    public bool IsComponent { get; init; }
     private readonly Lua _lua;
     private bool _disposed;
 
@@ -15,10 +17,22 @@ public sealed class YueScriptRuntime : IDisposable
     }
         
     
-    public YueScriptRuntime()
+    public YueScriptRuntime(string? componentName = null, bool isComponent = false)
     {
         _lua = new Lua();
 
+        this.IsComponent = isComponent;
+
+        if (!String.IsNullOrEmpty(componentName))
+        {
+            this.ComponentName = componentName;
+            this._logger = new Logger(componentName);
+        }
+        else
+        {
+            this._logger = new Logger("YueScriptRuntime");
+        }
+        
         ConfigureLua();
         LoadYueScript();
         

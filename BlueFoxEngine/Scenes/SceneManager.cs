@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using BlueFoxEngine.Components;
 using BlueFoxEngine.Assets;
 using BlueFoxEngine.Logging;
+using BlueFoxEngine.Scripting;
 using Raylib_cs;
 using Object = System.Object;
 
@@ -18,6 +19,7 @@ namespace BlueFoxEngine.Scenes
         public abstract void Update(double deltaTime);
         public abstract void Draw();
         private List<string> MusicPlayerUIDList;
+        private protected YueScriptInstance? _sceneGlobalYueScriptInstance;
     }
 
     public static class SceneManager
@@ -109,7 +111,6 @@ namespace BlueFoxEngine.Scenes
 
         internal static void Run()
         {
-
             while (!Raylib.WindowShouldClose())
             {
                 double deltaTime = Raylib.GetFrameTime();

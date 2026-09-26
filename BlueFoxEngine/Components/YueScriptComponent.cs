@@ -10,16 +10,16 @@ namespace BlueFoxEngine.Components;
 ///
 /// The component holds a YueScriptInstance which wraps a YueScriptAsset.
 /// When the object initializes, the component attempts to compile the
-/// script if it has not been compiled yet. On every update, the
-/// compiled lua source is re-executed — callers should gate their logic
-/// in a way that avoids unintended re-execution each frame.
+/// script if it has not been compiled yet.
 ///
 /// If the component is added to an Object that is disposed, the
 /// associated script asset is also disposed.
 /// </summary>
 public class YueScriptComponent : CSharpComponent
 {
-    private Logger _logger = new("YueScriptComponent");
+    public string ComponentName { get; private set; } = "";
+    private Logger _logger;
+    private bool externalRuntime;
 
     /// <summary>
     /// The script instance this component owns and executes.
@@ -38,20 +38,57 @@ public class YueScriptComponent : CSharpComponent
     /// <summary>
     /// Creates an empty component. Call SetAsset before adding to an Object.
     /// </summary>
-    public YueScriptComponent()
+    public YueScriptComponent(string? componentName = null)
     {
+        if (!String.IsNullOrEmpty(componentName))
+        {
+            this.ComponentName = componentName;
+            this._logger = new Logger(componentName);
+        }
+        else
+        {
+            this._logger = new Logger("UnNamedComponent");
+        }
+
+        this.externalRuntime = false;
     }
 
     /// <summary>
-    /// Creates a component attached to the given script asset.
+    /// Creates a component attached to the given script asset with its own YueScriptRuntime.
     /// </summary>
-    public YueScriptComponent(YueScriptAsset asset)
+    public YueScriptComponent(YueScriptAsset asset, string? componentName = null)
     {
+        if (!String.IsNullOrEmpty(componentName))
+        {
+            this.ComponentName = componentName;
+            this._logger = new Logger(componentName);
+        }
+        else
+        {
+            this._logger = new Logger("UnNamedComponent");
+        }
+        this.externalRuntime = false;
+        SetAsset(asset);
+    }
+    public YueScriptComponent(YueScriptAsset asset, YueScriptRuntime runtime, string? componentName = null)
+    {
+        if (!String.IsNullOrEmpty(componentName))
+        {
+            this.ComponentName = componentName;
+            this._logger = new Logger(componentName);
+        }
+        else
+        {
+            this._logger = new Logger("UnnamedYueComponent");
+        }
+
+        this._runtime = runtime;
+        this.externalRuntime = true;
         SetAsset(asset);
     }
 
     /// <summary>
-    /// Sets the script asset and creates a dedicated runtime for it.
+    /// Sets the script asset and creates a dedicated runtime for it, unless one already exists.
     /// </summary>
     public void SetAsset(YueScriptAsset asset)
     {
@@ -63,9 +100,12 @@ public class YueScriptComponent : CSharpComponent
         }
 
         // Each component gets its own runtime so scripts don't collide.
-        _runtime = new YueScriptRuntime();
-
-        Instance = new YueScriptInstance(asset, _runtime);
+        // Don't create an YueScriptInstance if one was provided by the user or one already existed.
+        if(this.Instance == null)
+        {
+            _runtime = new YueScriptRuntime(this.ComponentName, isComponent:true);
+            Instance = new YueScriptInstance(asset, _runtime);
+        }
     }
 
     /// <summary>
@@ -150,14 +190,16 @@ public class YueScriptComponent : CSharpComponent
             );
         }
     }
-
     /// <summary>
     /// Overrides the base dispose logic to clean up the Lua runtime.
     /// </summary>
     public override void Dispose()
     {
-        _runtime?.Dispose();
-        _runtime = null;
+        if (this.externalRuntime == false)
+        {
+            _runtime?.Dispose();
+            _runtime = null;
+        }
         base.Dispose();
     }
 }
