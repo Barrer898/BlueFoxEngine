@@ -19,7 +19,18 @@ namespace BlueFoxEngine.Scenes
         public abstract void Update(double deltaTime);
         public abstract void Draw();
         private List<string> MusicPlayerUIDList;
-        private protected YueScriptInstance? _sceneGlobalYueScriptInstance;
+        private YueScriptRuntime? GlobalLuaRuntime { get; set; }
+
+        private protected YueScriptRuntime CreateGlobalLuaRuntime()
+        {
+            this.GlobalLuaRuntime = new YueScriptRuntime("SceneGlobalLuaRuntime");
+            return this.GlobalLuaRuntime;
+        }
+
+        protected YueScriptRuntime? GetGlobalLuaRuntime()
+        {
+            return this.GlobalLuaRuntime;
+        }
     }
 
     public static class SceneManager

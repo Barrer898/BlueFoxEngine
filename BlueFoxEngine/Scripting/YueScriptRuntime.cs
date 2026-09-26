@@ -17,16 +17,16 @@ public sealed class YueScriptRuntime : IDisposable
     }
         
     
-    public YueScriptRuntime(string? componentName = null, bool isComponent = false)
+    public YueScriptRuntime(string? runtimeName = null, bool isComponent = false)
     {
         _lua = new Lua();
 
         this.IsComponent = isComponent;
 
-        if (!String.IsNullOrEmpty(componentName))
+        if (!String.IsNullOrEmpty(runtimeName))
         {
-            this.ComponentName = componentName;
-            this._logger = new Logger(componentName);
+            this.ComponentName = runtimeName;
+            this._logger = new Logger(runtimeName);
         }
         else
         {

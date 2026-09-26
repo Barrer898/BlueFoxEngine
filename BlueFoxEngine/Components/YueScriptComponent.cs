@@ -94,18 +94,29 @@ public class YueScriptComponent : CSharpComponent
     {
         if (asset == null)
         {
-            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning,
-                "Cannot assign null asset to YueScriptComponent.");
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning,
+                "Cannot assign null asset to YueScriptComponent."
+            );
+
             return;
         }
 
-        // Each component gets its own runtime so scripts don't collide.
-        // Don't create an YueScriptInstance if one was provided by the user or one already existed.
-        if(this.Instance == null)
+        if (Instance != null)
+            return;
+
+        if (_runtime == null)
         {
-            _runtime = new YueScriptRuntime(this.ComponentName, isComponent:true);
-            Instance = new YueScriptInstance(asset, _runtime);
+            _runtime = new YueScriptRuntime(
+                this.ComponentName,
+                isComponent: true
+            );
+
+            externalRuntime = false;
         }
+
+        Instance = new YueScriptInstance(asset, _runtime);
     }
 
     /// <summary>
