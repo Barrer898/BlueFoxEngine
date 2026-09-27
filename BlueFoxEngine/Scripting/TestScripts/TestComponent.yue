@@ -1,0 +1,10 @@
+print("Woah, this should run after Yue to Lua Compilation.")
+Script.OnUpdate = (dt) -> print("DeltaTime: "..dt)
+Script.OnInitialize = () -> print("Script Init...")
+
+if _G.ComponentCount == nil
+      _G.ComponentCount = 1
+else
+      _G.ComponentCount = _G.ComponentCount + 1
+
+print(_G.ComponentCount)
