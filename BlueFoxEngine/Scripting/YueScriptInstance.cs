@@ -15,7 +15,7 @@ namespace BlueFoxEngine.Scripting;
 /// Inherits from Object so the script instance participates in the
 /// engine's standard lifecycle (SceneObjectList, dispose chain, etc.).
 /// </summary>
-public class YueScriptInstance : BlueFoxEngine.Assets.Object
+public class YueScriptInstance
 {
     private Logger _logger = new("YueScriptInstance");
 

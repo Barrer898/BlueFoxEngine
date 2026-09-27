@@ -18,6 +18,8 @@ public sealed class YueScriptTest : Scene
     private TextureAsset debugTexture;
     private Sprite TestSprite;
     private YueScriptComponent TestComponent;
+    private YueScriptComponent TestComponent2;
+    private YueScriptComponent TestComponent3;
     
     private double _time;
     
@@ -44,7 +46,8 @@ public sealed class YueScriptTest : Scene
         TestSprite = new Sprite(debugTexture);
         
         TestComponent = TestSprite.AddComponent<YueScriptComponent>(new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset, this.GetGlobalLuaRuntime(), "YueTestComponent"));
-        TestComponent.Execute();
+        TestComponent2 = TestSprite.AddComponent<YueScriptComponent>(new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset, this.GetGlobalLuaRuntime(), "YueTestComponent2"));
+        TestComponent3 = TestSprite.AddComponent<YueScriptComponent>(new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset, this.GetGlobalLuaRuntime(), "YueTestComponent3"));
     }
 
     public override void Unload()
@@ -59,6 +62,6 @@ public sealed class YueScriptTest : Scene
 
     public override void Draw()
     {
-        Raylib.DrawText("Loading...", 500, 500, 15, Color.White);
+        TestSprite.Draw();
     }
 }
