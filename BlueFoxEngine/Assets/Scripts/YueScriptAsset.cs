@@ -5,7 +5,7 @@ using BlueFoxEngine.Scripting;
 namespace BlueFoxEngine.Assets.Scripts;
 
 /// <summary>
-/// Represents a YueScript (.ys) asset stored on disk.
+/// Represents a YueScript (.yue) asset stored on disk.
 ///
 /// The asset can hold either the raw source path or the pre-compiled
 /// Lua source. Compilation is performed lazily on first use, or
@@ -96,7 +96,7 @@ public class YueScriptAsset
         {
             try
             {
-                this.CompiledLua = YueScriptComplier.Compile(File.ReadAllText(fullLoadPath));
+                this.CompiledLua = YueScriptCompiler.Compile(File.ReadAllText(fullLoadPath));
                 this.Compiled = true;
             }
             catch (Exception e)

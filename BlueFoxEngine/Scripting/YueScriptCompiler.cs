@@ -11,7 +11,7 @@ namespace BlueFoxEngine.Scripting;
 /// of creating a fresh Lua state per call. The runtime's Lua stack
 /// is cleaned up after every compile.
 /// </summary>
-public static class YueScriptComplier
+public static class YueScriptCompiler
 {
     private static YueScriptRuntime _runtime = new();
 
