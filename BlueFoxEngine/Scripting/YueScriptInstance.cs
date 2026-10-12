@@ -1,6 +1,7 @@
 using BlueFoxEngine.Assets.Scripts;
 using BlueFoxEngine.Logging;
 using BlueFoxEngine.Scripting;
+using Object = BlueFoxEngine.Assets.Object;
 
 namespace BlueFoxEngine.Scripting;
 
@@ -35,12 +36,16 @@ public class YueScriptInstance
     /// </summary>
     public ScriptEntry ScriptEntry { get; }
 
+    public Object? Owner { get; }
+
     public YueScriptInstance(
         YueScriptAsset asset,
-        YueScriptRuntime runtime)
+        YueScriptRuntime runtime,
+        Object? owner = null)
     {
         this.Asset = asset;
         this.Runtime = runtime;
+        this.Owner = owner;
         this.ScriptEntry = runtime.RegisterScript();
     }
 

@@ -2,9 +2,56 @@ print("Woah, this should run after Yue to Lua Compilation.")
 Script.OnUpdate = (dt) -> print("DeltaTime: "..dt)
 Script.OnInitialize = () -> print("Script Init...")
 
+-- Count how many times this script initializes
 if _G.ComponentCount == nil
       _G.ComponentCount = 1
 else
       _G.ComponentCount = _G.ComponentCount + 1
 
 print(_G.ComponentCount)
+
+-- ============================================================
+-- YueScript Engine API Demo
+-- ============================================================
+-- From here on, demonstrate the new engine bridge functionality.
+-- The Script.Owner table is now connected to the C# Object that
+-- owns this YueScriptComponent. Scripts can also use engine.*
+-- for direct access.
+
+-- 1. Access the Owner object (the C# Object this script is attached to)
+--    Script.Owner has convenience methods for Object2D properties:
+--
+--    Script.Owner:GetPosition()    -> returns {x, y}
+--    Script.Owner:SetPosition(x, y)
+--    Script.Owner:GetScale()       -> returns {x, y}
+--    Script.Owner:SetScale(x, y)
+--    Script.Owner:GetRotation()    -> returns radians
+--    Script.Owner:SetRotation(radians)
+--    Script.Owner:GetProperty(name) -> gets any property
+--    Script.Owner:SetProperty(name, value) -> sets any property
+
+-- 2. Create new objects from scripts using Script.Owner:createObject(type)
+--    or engine.createObject(type):
+--      - "Object"  -> plain Object
+--      - "Object2D" -> Object2D with transform properties
+--      - "Sprite"  -> Sprite (assign texture later via SetProperty)
+--
+--    Returns an Owner table with the same convenience methods.
+
+-- 3. Clone, destroy, etc.:
+--    Script.Owner:clone() -> returns new Owner
+--    Script.Owner:destroy() -> disposes self and removes from scene
+--    engine.destroyObject(handle)
+--    engine.removeObjectFromScene(handle)
+
+-- Example (uncomment to test):
+--
+-- -- Create a new Object2D
+-- local newObject = Script.Owner:createObject("Object2D")
+-- newObject:SetPosition(100, 200)
+-- newObject:SetScale(2, 2)
+-- print("Created object at (100, 200) with scale (2, 2)")
+--
+-- -- Read properties from the owning object
+-- local x, y = Script.Owner:GetPosition()
+-- print("Owner position:", x, y)

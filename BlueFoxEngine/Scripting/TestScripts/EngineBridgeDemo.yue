@@ -1,0 +1,63 @@
+-- ============================================================
+-- EngineBridgeDemo.yue — Demonstrates YueScript Engine API
+-- ============================================================
+-- This script shows how to use the new engine bridge to:
+--   - Create, destroy, and clone objects
+--   - Read and write object properties
+--   - Access and modify components
+
+-- Store handles in a script-scoped table so they persist between calls
+_localHandles = {}
+
+Script.OnInitialize = () ->
+    print("=== Engine Bridge Demo ===")
+    print("Starting OnInitialize...")
+
+    -- 1. Access the Owner (this script's parent Object)
+    local owner = Script.Owner
+    print("Owner handle:", owner._handle)
+
+    -- 2. Create a new Object2D using the Owner's createObject method
+    local newObj = owner:createObject("Object2D")
+    print("Created Object2D with handle:", newObj._handle)
+    _localHandles.newObj = newObj
+
+    -- 3. Set properties using convenience methods
+    newObj:SetPosition(100, 200)
+    newObj:SetScale(2, 2)
+    newObj:SetRotation(0.5)
+    print("Set new object position to (100, 200), scale to (2, 2)")
+
+    -- 4. Read properties back
+    local x, y = newObj:GetPosition()
+    local sx, sy = newObj:GetScale()
+    local rot = newObj:GetRotation()
+    print(string.format("Read back: pos=(%g, %g), scale=(%g, %g), rotation=%g", x, y, sx, sy, rot))
+
+    -- 5. Also test direct engine.* access
+    local anotherObj = engine.createObject("Object2D")
+    engine.setProperty(anotherObj, "Position", {x = 300, y = 400})
+    engine.setProperty(anotherObj, "Scale", {x = 1.5, y = 1.5})
+    print("Created another object via engine.* at (300, 400)")
+
+    -- 6. Clone an object
+    local cloned = newObj:clone()
+    print("Cloned object handle:", cloned._handle)
+
+    Script.PrintedObjects = 3
+    print("OnInitialize complete! Created", Script.PrintedObjects, "objects.")
+
+Script.OnUpdate = (dt) ->
+    -- Every frame, cycle the rotation of our new object
+    local newObj = _localHandles.newObj
+
+    if newObj then
+        local rot = newObj:GetRotation()
+        newObj:SetRotation(rot + dt * 0.5)
+    end
+
+    -- Print periodic updates
+    if math.fmod(math.floor(_G.UpdateCount or 0), 60) == 0 then
+        print("OnUpdate frame:", _G.UpdateCount or 0, "dt:", dt)
+    end
+    _G.UpdateCount = (_G.UpdateCount or 0) + 1
