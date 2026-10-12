@@ -169,7 +169,19 @@ public sealed class YueScriptRuntime : IDisposable
                 return newObj
             end
 
+            mt.__index = mt
             setmetatable(owner, mt)
+
+            setmetatable(owner, mt)
+        ");
+        Console.WriteLine("hasError Check HERE!");
+        bool hasError = _lua.DoString($@"
+            local owner = _G.Scripts['{scriptId}'].Script.Owner
+        
+            assert(owner ~= nil, 'Script.Owner is nil')
+            assert(getmetatable(owner) ~= nil, 'Owner metatable is missing')
+            assert(type(owner.createObject) == 'function',
+                'Owner.createObject is not a function')
         ");
     }
 
@@ -197,31 +209,22 @@ public sealed class YueScriptRuntime : IDisposable
 
     public YueScriptRuntime(string? runtimeName = null, bool isComponent = false)
     {
-        Console.WriteLine("1-1");
         _lua = new Lua();
-        Console.WriteLine("1-2");
         this.IsComponent = isComponent;
-        Console.WriteLine("1-3");
         if (!String.IsNullOrEmpty(runtimeName))
         {
-            Console.WriteLine("1-4");
             this.ComponentName = runtimeName;
             this._logger = new Logger(runtimeName);
         }
         else
         {
-            Console.WriteLine("1-5");
             this._logger = new Logger("YueScriptRuntime");
         }
         
-        Console.WriteLine("1-6");
         ConfigureLua();
-        Console.WriteLine("1-7");
         LoadYueScript();
-        Console.WriteLine("1-8");
         // Register the engine API bridge (exposes 'engine' global table)
         YueScriptBridge.RegisterBridgeFunctions(_lua);
-        Console.WriteLine("1-9");
         LuaFunction printFunction = (IntPtr ptr) =>
         {
             int argumentCount = _lua.GetTop();
@@ -232,7 +235,6 @@ public sealed class YueScriptRuntime : IDisposable
 
             return 0;
         };
-        Console.WriteLine("1-10");
         _lua.PushCFunction(printFunction);
         _lua.SetGlobal("print");
     }
@@ -270,7 +272,19 @@ public sealed class YueScriptRuntime : IDisposable
         if (_disposed)
             throw new ObjectDisposedException(nameof(YueScriptRuntime));
 
-        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Trace, source);
+        if (string.IsNullOrWhiteSpace(source) ||
+            string.Equals(source.Trim(), "nil", StringComparison.Ordinal))
+        {
+            _logger.Output(
+                Logger.OutputType.ExceptionThrownError,
+                Logger.OutputLevel.Error,
+                $"Execute received invalid source. ScriptId: {scriptId ?? "<none>"}, " +
+                $"Source: '{source ?? "<null>"}'");
+
+            return;
+        }
+        
+        _logger.Output(Logger.OutputType.Info, Logger.OutputLevel.Critical, source);
 
         bool hasError = false;
 

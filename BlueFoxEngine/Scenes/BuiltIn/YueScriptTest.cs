@@ -45,9 +45,12 @@ public sealed class YueScriptTest : Scene
         debugTexture = AssetLoader.LoadTextureResource("debug.png");
         TestSprite = new Sprite(debugTexture);
         
-        TestComponent = TestSprite.AddComponent<YueScriptComponent>(new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset, this.GetGlobalLuaRuntime(), "YueTestComponent"));
+        /*TestComponent = TestSprite.AddComponent<YueScriptComponent>(new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset, this.GetGlobalLuaRuntime(), "YueTestComponent"));
         TestComponent2 = TestSprite.AddComponent<YueScriptComponent>(new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset, this.GetGlobalLuaRuntime(), "YueTestComponent2"));
-        TestComponent3 = TestSprite.AddComponent<YueScriptComponent>(new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset, this.GetGlobalLuaRuntime(), "YueTestComponent3"));
+        TestComponent3 = TestSprite.AddComponent<YueScriptComponent>(new YueScriptComponent(AssetLoader.LoadYueScript("TestComponent.yue").Asset, this.GetGlobalLuaRuntime(), "YueTestComponent3"));*/
+        
+        TestComponent = TestSprite.AddComponent<YueScriptComponent>(new YueScriptComponent(AssetLoader.LoadYueScript("EngineBridgeDemo.yue").Asset, this.GetGlobalLuaRuntime(), "YueBridgeTestComponent"));
+        
     }
 
     public override void Unload()

@@ -1,3 +1,5 @@
+using Object = BlueFoxEngine.Assets.Object;
+
 namespace BlueFoxEngine.Components;
 
 public class CSharpComponent : IDisposable 

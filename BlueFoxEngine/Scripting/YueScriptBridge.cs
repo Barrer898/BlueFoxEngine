@@ -698,46 +698,45 @@ public static class YueScriptBridge
     /// Initializes the bridge by attaching all engine API functions to a Lua table.
     /// The returned table can be assigned to _G.YueScriptEngine or similar.
     /// </summary>
+    
     internal static void RegisterBridgeFunctions(Lua lua)
     {
-        Console.WriteLine("2-1");
         lua.NewTable();
-        Console.WriteLine("2-2");
-        // Top-level engine functions — create LuaFunction delegates first
-        Console.WriteLine("2-3"); // CRASHES HERE 
-        LuaFunction fnCreateObject = (IntPtr ptr) => CreateObject(lua);
-        lua.PushCFunction(fnCreateObject);
-        lua.SetField(-1, "createObject");
-        Console.WriteLine("2-4");
-        LuaFunction fnDestroyObject = (IntPtr ptr) => DestroyObject(lua);
-        lua.PushCFunction(fnDestroyObject);
-        lua.SetField(-1, "destroyObject");
-        Console.WriteLine("2-5");
-        LuaFunction fnRemoveObject = (IntPtr ptr) => RemoveObjectFromScene(lua);
-        lua.PushCFunction(fnRemoveObject);
-        lua.SetField(-1, "removeObjectFromScene");
-        Console.WriteLine("2-6");
-        LuaFunction fnCloneObject = (IntPtr ptr) => CloneObject(lua);
-        lua.PushCFunction(fnCloneObject);
-        lua.SetField(-1, "cloneObject");
-        Console.WriteLine("2-7");
-        LuaFunction fnGetProperty = (IntPtr ptr) => GetProperty(lua);
-        lua.PushCFunction(fnGetProperty);
-        lua.SetField(-1, "getProperty");
-        Console.WriteLine("2-8");
-        LuaFunction fnSetProperty = (IntPtr ptr) => SetProperty(lua);
-        lua.PushCFunction(fnSetProperty);
-        lua.SetField(-1, "setProperty");
-        Console.WriteLine("2-9");
-        LuaFunction fnGetComponent = (IntPtr ptr) => GetComponent(lua);
-        lua.PushCFunction(fnGetComponent);
-        lua.SetField(-1, "getComponent");
-        Console.WriteLine("2-10");
-        LuaFunction fnAddComponent = (IntPtr ptr) => AddComponent(lua);
-        lua.PushCFunction(fnAddComponent);
-        lua.SetField(-1, "addComponent");
 
-        // Store in a global for scripts to access directly
+        lua.PushCFunction((IntPtr ptr) =>
+            CreateObject(Lua.FromIntPtr(ptr)));
+        lua.SetField(-2, "createObject");
+
+        lua.PushCFunction((IntPtr ptr) =>
+            DestroyObject(Lua.FromIntPtr(ptr)));
+        lua.SetField(-2, "destroyObject");
+
+        lua.PushCFunction((IntPtr ptr) =>
+            RemoveObjectFromScene(Lua.FromIntPtr(ptr)));
+        lua.SetField(-2, "removeObjectFromScene");
+
+        lua.PushCFunction((IntPtr ptr) =>
+            CloneObject(Lua.FromIntPtr(ptr)));
+        lua.SetField(-2, "cloneObject");
+
+        lua.PushCFunction((IntPtr ptr) =>
+            GetProperty(Lua.FromIntPtr(ptr)));
+        lua.SetField(-2, "getProperty");
+
+        lua.PushCFunction((IntPtr ptr) =>
+            SetProperty(Lua.FromIntPtr(ptr)));
+        lua.SetField(-2, "setProperty");
+
+        lua.PushCFunction((IntPtr ptr) =>
+            GetComponent(Lua.FromIntPtr(ptr)));
+        lua.SetField(-2, "getComponent");
+
+        lua.PushCFunction((IntPtr ptr) =>
+            AddComponent(Lua.FromIntPtr(ptr)));
+        lua.SetField(-2, "addComponent");
+
+        // Assign the completed table to the global `engine`.
         lua.SetGlobal("engine");
     }
+
 }

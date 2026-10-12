@@ -36,8 +36,13 @@ public class YueScriptInstance
     /// </summary>
     public ScriptEntry ScriptEntry { get; }
 
-    public Object? Owner { get; }
+    public Object? Owner { get; private set; }
 
+    internal void SetOwner(Object owner)
+    {
+        Owner = owner;
+    }
+    
     public YueScriptInstance(
         YueScriptAsset asset,
         YueScriptRuntime runtime,
@@ -61,11 +66,23 @@ public class YueScriptInstance
     /// </summary>
     public void Execute()
     {
-        if (!Asset.Compiled || string.IsNullOrWhiteSpace(Asset.CompiledLua) || Asset.CompiledLua == null)
+        if (!Asset.Compiled ||
+            string.IsNullOrWhiteSpace(Asset.CompiledLua) ||
+            Asset.CompiledLua == "nil")
         {
-            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning, "Given asset is not compiled or failed to compile.");
+            _logger.Output(
+                Logger.OutputType.ExceptionThrownError,
+                Logger.OutputLevel.Error,
+                $"Script execution skipped. " +
+                $"ScriptId: {ScriptEntry.ScriptId}, " +
+                $"Compiled: {Asset.Compiled}, " +
+                $"Source file: {Asset.RelativeTargetSourceFile ?? "<unset>"}, " +
+                $"CompiledLua: '{Asset.CompiledLua ?? "<null>"}'"
+            );
+
             return;
         }
+
         Runtime.Execute(Asset.CompiledLua, ScriptEntry.ScriptId);
     }
 }

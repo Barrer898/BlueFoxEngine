@@ -127,6 +127,30 @@ public class YueScriptComponent : CSharpComponent
         Instance = new YueScriptInstance(asset, _runtime);
     }
 
+    private bool EnsureCompiled()
+    {
+        if (Instance == null)
+            return false;
+
+        if (!Instance.Asset.Compiled)
+            Instance.Asset.CompileSourceFromFile();
+
+        if (!Instance.Asset.Compiled ||
+            string.IsNullOrWhiteSpace(Instance.Asset.CompiledLua))
+        {
+            _logger.Output(
+                Logger.OutputType.ExceptionThrownError,
+                Logger.OutputLevel.Error,
+                $"Cannot execute YueScript: compilation failed or produced no output. " +
+                $"Source file: {Instance.Asset.RelativeTargetSourceFile ?? "<unset>"}"
+            );
+            Console.Write("EnsureCompile return false");
+            return false;
+        }
+        Console.Write("EnsureCompile return true");
+        return true;
+    }
+    
     /// <summary>
     ///     Executes the assigned script once.
     ///     If the asset has not been compiled yet, this method attempts
@@ -136,31 +160,43 @@ public class YueScriptComponent : CSharpComponent
     {
         if (Instance == null)
         {
-            _logger.Output(Logger.OutputType.Warning, Logger.OutputLevel.Warning,
-                "No script assigned to YueScriptComponent. Call SetAsset() first.");
+            _logger.Output(
+                Logger.OutputType.Warning,
+                Logger.OutputLevel.Warning,
+                "No script assigned to YueScriptComponent. Call SetAsset() first."
+            );
+
             return;
         }
 
-        // Attempt lazy compilation if not yet compiled.
-        if (!Instance.Asset.Compiled) Instance.Asset.CompileSourceFromFile();
+        if (!EnsureCompiled())
+            return;
 
         Instance.Execute();
     }
-
     public override void Initialize()
     {
         base.Initialize();
-        if (Instance == null) return;
-        if (!Instance.Asset.Compiled) Instance.Asset.CompileSourceFromFile();
 
-        if (Instance.Owner != null)
+        if (Instance == null || !EnsureCompiled())
+            return;
+
+        if (base.Owner != null)
         {
-            // Attach the C# Object to Script.Owner so scripts can interact with it
-            Instance.Runtime.AttachObject(Instance.ScriptEntry.ScriptId, Instance.Owner);
+            Instance.SetOwner(base.Owner);
+
+            Instance.Runtime.AttachObject(
+                Instance.ScriptEntry.ScriptId,
+                base.Owner
+            );
         }
 
         Instance.Execute();
-        CallScriptOnInitialize(Instance.Runtime.GetLuaCore(), Instance.ScriptEntry.ScriptId);
+
+        CallScriptOnInitialize(
+            Instance.Runtime.GetLuaCore(),
+            Instance.ScriptEntry.ScriptId
+        );
     }
 
     /// <summary>
