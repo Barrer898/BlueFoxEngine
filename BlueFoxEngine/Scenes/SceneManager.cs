@@ -122,12 +122,15 @@ namespace BlueFoxEngine.Scenes
 
         internal static void Run()
         {
+            Console.WriteLine("0");
             while (!Raylib.WindowShouldClose())
             {
+                Console.WriteLine("1");
                 double deltaTime = Raylib.GetFrameTime();
 
                 if (_currentScene != null)
                 {
+                    Console.WriteLine("2");
                     _currentScene.Update(deltaTime);
                     Raylib.BeginDrawing();
 
@@ -136,6 +139,7 @@ namespace BlueFoxEngine.Scenes
                     Raylib.EndDrawing();
                 }
                 // Update Music Players
+                Console.WriteLine("3");
                 if (musicPlayerList.Count != 0)
                 {
                     foreach (var musicPlayerKeyValuePair in musicPlayerList)
@@ -145,13 +149,14 @@ namespace BlueFoxEngine.Scenes
                             musicPlayerKeyValuePair.Value.Update(deltaTime);
                     }
                 }
-
+                Console.WriteLine("4");
                 foreach (BlueFoxEngine.Assets.Object obj in _currentScene.SceneObjectList)
                 {
+                    Console.WriteLine("5");
                     if(obj != null)
                         obj.UpdateComponents(deltaTime);
                 }
-                
+                Console.WriteLine("6");
             }
             EngineCore.Close();
         }

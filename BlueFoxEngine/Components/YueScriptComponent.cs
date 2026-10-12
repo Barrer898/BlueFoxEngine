@@ -153,6 +153,12 @@ public class YueScriptComponent : CSharpComponent
         if (Instance == null) return;
         if (!Instance.Asset.Compiled) Instance.Asset.CompileSourceFromFile();
 
+        if (Instance.Owner != null)
+        {
+            // Attach the C# Object to Script.Owner so scripts can interact with it
+            Instance.Runtime.AttachObject(Instance.ScriptEntry.ScriptId, Instance.Owner);
+        }
+
         Instance.Execute();
         CallScriptOnInitialize(Instance.Runtime.GetLuaCore(), Instance.ScriptEntry.ScriptId);
     }

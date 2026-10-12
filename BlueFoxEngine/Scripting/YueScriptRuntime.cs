@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using BlueFoxEngine.Logging;
 using KeraLua;
+using Object = global::BlueFoxEngine.Assets.Object;
 
 namespace BlueFoxEngine.Scripting;
 
@@ -60,7 +61,7 @@ public sealed class YueScriptRuntime : IDisposable
         bool hasError = _lua.DoString($@"
             _G.Scripts['{scriptId}'] = {{}}
             _G.Scripts['{scriptId}'].Script = {{}}
-            _G.Scripts['{scriptId}'].Script.Parent = _G.Scripts['{scriptId}']
+            _G.Scripts['{scriptId}'].Script.Owner = {{}}
         ");
         if (hasError)
         {
@@ -73,6 +74,103 @@ public sealed class YueScriptRuntime : IDisposable
         RegisteredScripts.Add(scriptId);
 
         return new ScriptEntry { ScriptId = scriptId };
+    }
+
+    /// <summary>
+    /// Attaches a C# Object to a script by populating Script.Owner with the object's handle
+    /// and setting up methods on the Lua Owner table for engine interaction.
+    /// </summary>
+    internal void AttachObject(string scriptId, Object owner)
+    {
+        if (_disposed)
+            throw new ObjectDisposedException(nameof(YueScriptRuntime));
+
+        int handle = YueScriptBridge.RegisterObject(owner);
+
+        // Set up Script.Owner as a Lua table with methods
+        _lua.DoString($@"
+            local owner = _G.Scripts['{scriptId}'].Script.Owner
+            -- Store the C# object handle
+            owner._handle = {handle}
+            -- Set a metatable so owner methods (e.g., owner:GetPosition()) resolve via __index
+            local mt = {{}}
+
+            -- Helper: createObject(type) -> Owner (returns Owner with _handle)
+            mt.createObject = function(self, typeName)
+                local obj = engine.createObject(typeName)
+                -- Wrap the returned object in a meta-table with convenience methods
+                local newObj = {{ _handle = obj }}
+                setmetatable(newObj, mt)
+                return newObj
+            end
+
+            -- Helper: destroy() on the Owner itself
+            mt.destroy = function(self)
+                engine.destroyObject(self._handle)
+            end
+
+            -- Helper: setPosition(x, y)  (convenience for Object2D)
+            mt.setPosition = function(self, x, y)
+                engine.setProperty(self._handle, ""Position"", {{x = x, y = y}})
+            end
+
+            -- Helper: getPosition() -> x, y
+            mt.getPosition = function(self)
+                local v = engine.getProperty(self._handle, ""Position"")
+                return v.x, v.y
+            end
+
+            -- Helper: setScale(x, y)
+            mt.setScale = function(self, x, y)
+                engine.setProperty(self._handle, ""Scale"", {{x = x, y = y}})
+            end
+
+            -- Helper: getScale() -> x, y
+            mt.getScale = function(self)
+                local v = engine.getProperty(self._handle, ""Scale"")
+                return v.x, v.y
+            end
+
+            -- Helper: setRotation(radians)
+            mt.setRotation = function(self, r)
+                engine.setProperty(self._handle, ""Rotation"", r)
+            end
+
+            -- Helper: getRotation() -> radians
+            mt.getRotation = function(self)
+                return engine.getProperty(self._handle, ""Rotation"")
+            end
+
+            -- Helper: setProperty(name, value)
+            mt.setProperty = function(self, name, value)
+                engine.setProperty(self._handle, name, value)
+            end
+
+            -- Helper: getProperty(name) -> value
+            mt.getProperty = function(self, name)
+                return engine.getProperty(self._handle, name)
+            end
+
+            -- Helper: addComponent(componentType)
+            mt.addComponent = function(self, componentType)
+                return engine.addComponent(self._handle, componentType)
+            end
+
+            -- Helper: getComponent(componentType)
+            mt.getComponent = function(self, componentType)
+                return engine.getComponent(self._handle, componentType)
+            end
+
+            -- Helper: clone()
+            mt.clone = function(self)
+                local cloned = engine.cloneObject(self._handle)
+                local newObj = {{ _handle = cloned }}
+                setmetatable(newObj, mt)
+                return newObj
+            end
+
+            setmetatable(owner, mt)
+        ");
     }
 
     /// <summary>
@@ -99,23 +197,31 @@ public sealed class YueScriptRuntime : IDisposable
 
     public YueScriptRuntime(string? runtimeName = null, bool isComponent = false)
     {
+        Console.WriteLine("1-1");
         _lua = new Lua();
-
+        Console.WriteLine("1-2");
         this.IsComponent = isComponent;
-
+        Console.WriteLine("1-3");
         if (!String.IsNullOrEmpty(runtimeName))
         {
+            Console.WriteLine("1-4");
             this.ComponentName = runtimeName;
             this._logger = new Logger(runtimeName);
         }
         else
         {
+            Console.WriteLine("1-5");
             this._logger = new Logger("YueScriptRuntime");
         }
-
+        
+        Console.WriteLine("1-6");
         ConfigureLua();
+        Console.WriteLine("1-7");
         LoadYueScript();
-
+        Console.WriteLine("1-8");
+        // Register the engine API bridge (exposes 'engine' global table)
+        YueScriptBridge.RegisterBridgeFunctions(_lua);
+        Console.WriteLine("1-9");
         LuaFunction printFunction = (IntPtr ptr) =>
         {
             int argumentCount = _lua.GetTop();
@@ -126,7 +232,7 @@ public sealed class YueScriptRuntime : IDisposable
 
             return 0;
         };
-
+        Console.WriteLine("1-10");
         _lua.PushCFunction(printFunction);
         _lua.SetGlobal("print");
     }

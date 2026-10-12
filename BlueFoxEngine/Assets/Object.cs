@@ -2,6 +2,7 @@ using BlueFoxEngine.Components;
 using System.Numerics;
 using BlueFoxEngine.Logging;
 using BlueFoxEngine.Scenes;
+using BlueFoxEngine.Scripting;
 
 namespace BlueFoxEngine.Assets;
 
@@ -122,6 +123,9 @@ public class Object : IDisposable
 
         // DisposeLogic already disposed each component; just clear the list.
         _components.Clear();
+
+        // Clean up YueScript bridge registry entries
+        YueScriptBridge.UnregisterObject(this);
 
         GC.SuppressFinalize(this);
     }
